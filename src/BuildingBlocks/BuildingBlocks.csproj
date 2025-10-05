@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup Label="Infrastructure">
+        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+        <PackageReference Include="Bogus" />
+        <PackageReference Include="DistributedLock.Redis" />
+        <PackageReference Include="EFCore.NamingConventions" />
+        <PackageReference Include="Mediator.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" />
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" />
+        <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" />
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience"/>
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery"/>
+        <PackageReference Include="Asp.Versioning.Http"/>
+        <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer"/>
+        <PackageReference Include="Humanizer.Core"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+        <PackageReference Include="Scalar.AspNetCore"/>
+        <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI"/>
+        <PackageReference Include="System.Net.Http.Json" />
+        <PackageReference Include="System.Text.Json" />
+    </ItemGroup>
+    <ItemGroup Label="OpenTelemetry">
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol"/>
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.StackExchangeRedis" />
+    </ItemGroup>
+    <ItemGroup Label="AI">
+        <!-- SemanticKernel-->
+        <PackageReference Include="Microsoft.SemanticKernel" />
+        <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" />
+        <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
+        <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" />
+        <PackageReference Include="Microsoft.SemanticKernel.Connectors.Ollama" />
+        <PackageReference Include="Microsoft.Extensions.VectorData.Abstractions" />
+        <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
+        <PackageReference Include="Microsoft.SemanticKernel.Connectors.Qdrant" />
+        <PackageReference Include="Microsoft.SemanticKernel.Connectors.Chroma" />
+        <!-- MCP-->
+        <PackageReference Include="ModelContextProtocol.AspNetCore" />
+        <PackageReference Include="ModelContextProtocol" />
+        <!-- A2A-->
+        <PackageReference Include="A2A.AspNetCore" />
+        <PackageReference Include="Microsoft.SemanticKernel.Agents.A2A" />
+        <!-- Orchestrations-->
+        <PackageReference Include="Microsoft.SemanticKernel.Agents.Orchestration" />
+        <PackageReference Include="Microsoft.SemanticKernel.Agents.Runtime.InProcess" />
+    </ItemGroup>
+    <ItemGroup Label="Aspire">
+        <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" />
+        <PackageReference Include="Aspire.StackExchange.Redis" />
+        <PackageReference Include="CommunityToolkit.Aspire.OllamaSharp" />
+        <PackageReference Include="Aspire.Qdrant.Client" />
+    </ItemGroup>
+</Project>
