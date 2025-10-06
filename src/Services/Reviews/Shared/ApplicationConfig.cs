@@ -24,7 +24,7 @@ public static class ApplicationConfig
     private static void AddDatabase(WebApplicationBuilder builder)
     {
         builder.AddPostgresDbContext<ReviewsDbContext>(
-            connectionStringName: AspireApplicationResources.PostgresDatabase.Catalogs,
+            connectionStringName: AspireApplicationResources.PostgresDatabase.Reviews,
             action: app =>
             {
                 if (app.Environment.IsDevelopment() || app.Environment.IsAspireRun())

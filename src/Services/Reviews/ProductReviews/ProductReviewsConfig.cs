@@ -20,7 +20,7 @@ public static class ProductReviewsConfig
     {
         var reviews = endpoints.NewVersionedApi(nameof(ProductReview).Pluralize().Kebaberize());
         var reviewsV1 = reviews.MapGroup("/api/v{version:apiVersion}/reviews").HasApiVersion(1.0);
-
+        
         reviewsV1.MapCreateReviewEndpoint();
         reviewsV1.MapGetReviewsByProductEndpoint();
         reviewsV1.MapAnalyzeProductReviewsEndpoint();

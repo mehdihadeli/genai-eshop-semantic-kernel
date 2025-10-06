@@ -60,7 +60,7 @@ public static class ApplicationConfig
     private static void AddDatabase(WebApplicationBuilder builder)
     {
         builder.AddPostgresDbContext<OrdersDbContext>(
-            connectionStringName: AspireApplicationResources.PostgresDatabase.Catalogs,
+            connectionStringName: AspireApplicationResources.PostgresDatabase.Orders,
             action: app =>
             {
                 if (app.Environment.IsDevelopment() || app.Environment.IsAspireRun())

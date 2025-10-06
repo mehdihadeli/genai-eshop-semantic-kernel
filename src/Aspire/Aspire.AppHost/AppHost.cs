@@ -64,8 +64,6 @@ var catalogsApi = builder
         "https",
         endpoint =>
         {
-            // - Non-container resources like a project cannot be proxied when both TargetPort and Port are specified with the same value, usually we use Port.
-            // - When IsProxy is `true`, proxy uses our launch profile ports, and our app uses a random port, and when IsProxy is `false` the port will use for project prot
             endpoint.IsProxied = true;
         }
     )
@@ -73,8 +71,6 @@ var catalogsApi = builder
         "http",
         endpoint =>
         {
-            // - Non-container resources like a project cannot be proxied when both TargetPort and Port are specified with the same value, usually we use Port.
-            // - When IsProxy is `true`, proxy uses our launch profile ports, and our app uses a random port, and when IsProxy is `false` the port will use for project prot
             endpoint.IsProxied = true;
         }
     );
@@ -96,8 +92,6 @@ var reviewsApi = builder
         "https",
         endpoint =>
         {
-            // - Non-container resources like a project cannot be proxied when both TargetPort and Port are specified with the same value, usually we use Port.
-            // - When IsProxy is `true`, proxy uses our launch profile ports, and our app uses a random port, and when IsProxy is `false` the port will use for project prot
             endpoint.IsProxied = true;
         }
     )
@@ -105,8 +99,6 @@ var reviewsApi = builder
         "http",
         endpoint =>
         {
-            // - Non-container resources like a project cannot be proxied when both TargetPort and Port are specified with the same value, usually we use Port.
-            // - When IsProxy is `true`, proxy uses our launch profile ports, and our app uses a random port, and when IsProxy is `false` the port will use for project prot
             endpoint.IsProxied = true;
         }
     );
@@ -128,8 +120,6 @@ var ordersApi = builder
         "https",
         endpoint =>
         {
-            // - Non-container resources like a project cannot be proxied when both TargetPort and Port are specified with the same value, usually we use Port.
-            // - When IsProxy is `true`, proxy uses our launch profile ports, and our app uses a random port, and when IsProxy is `false` the port will use for project prot
             endpoint.IsProxied = true;
         }
     )
@@ -137,8 +127,6 @@ var ordersApi = builder
         "http",
         endpoint =>
         {
-            // - Non-container resources like a project cannot be proxied when both TargetPort and Port are specified with the same value, usually we use Port.
-            // - When IsProxy is `true`, proxy uses our launch profile ports, and our app uses a random port, and when IsProxy is `false` the port will use for project prot
             endpoint.IsProxied = true;
         }
     );
@@ -160,8 +148,6 @@ var cartsApi = builder
         "https",
         endpoint =>
         {
-            // - Non-container resources like a project cannot be proxied when both TargetPort and Port are specified with the same value, usually we use Port.
-            // - When IsProxy is `true`, proxy uses our launch profile ports, and our app uses a random port, and when IsProxy is `false` the port will use for project prot
             endpoint.IsProxied = true;
         }
     )
@@ -169,8 +155,32 @@ var cartsApi = builder
         "http",
         endpoint =>
         {
-            // - Non-container resources like a project cannot be proxied when both TargetPort and Port are specified with the same value, usually we use Port.
-            // - When IsProxy is `true`, proxy uses our launch profile ports, and our app uses a random port, and when IsProxy is `false` the port will use for project prot
+            endpoint.IsProxied = true;
+        }
+    );
+
+var recommendationApi = builder
+    .AddProject<Projects.Carts>(AspireApplicationResources.Api.RecommendationApi)
+    .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
+    // .WithReference(ollamaChat)
+    // .WaitFor(ollamaChat)
+    // .WithReference(ollamaEmbedding)
+    // .WaitFor(ollamaEmbedding)
+    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/launch-profiles#control-launch-profile-selection
+    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#launch-profiles
+    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#ports-and-proxies
+    // .NET Aspire will parse the launchSettings.json file selecting the appropriate launch profile and automatically generate endpoints
+    .WithEndpoint(
+        "https",
+        endpoint =>
+        {
+            endpoint.IsProxied = true;
+        }
+    )
+    .WithEndpoint(
+        "http",
+        endpoint =>
+        {
             endpoint.IsProxied = true;
         }
     );
@@ -190,8 +200,6 @@ var mcpServerApi = builder
         "https",
         endpoint =>
         {
-            // - Non-container resources like a project cannot be proxied when both TargetPort and Port are specified with the same value, usually we use Port.
-            // - When IsProxy is `true`, proxy uses our launch profile ports, and our app uses a random port, and when IsProxy is `false` the port will use for project prot
             endpoint.IsProxied = true;
         }
     )
@@ -199,8 +207,6 @@ var mcpServerApi = builder
         "http",
         endpoint =>
         {
-            // - Non-container resources like a project cannot be proxied when both TargetPort and Port are specified with the same value, usually we use Port.
-            // - When IsProxy is `true`, proxy uses our launch profile ports, and our app uses a random port, and when IsProxy is `false` the port will use for project prot
             endpoint.IsProxied = true;
         }
     );
