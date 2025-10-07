@@ -146,19 +146,19 @@ public static class DependencyInjectionExtensions
     /// Registers an MCP client that launches and connects to an MCP server over STDIO.
     /// </summary>
     /// <param name="builder">The application builder used to access services and configuration.</param>
-    /// <param name="clientName">Keyed service name for resolving the <see cref="IMcpClient"/>.</param>
+    /// <param name="mcpClientName">Keyed service name for resolving the <see cref="IMcpClient"/>.</param>
     /// <param name="command">Executable or shell command to start the MCP server process (e.g., "npx", "dotnet").</param>
     /// <param name="arguments">Optional command-line arguments passed to <paramref name="command"/>.</param>
     /// <param name="workingDirectory">Optional working directory for the launched process.</param>
     /// <param name="version">Client-reported version in MCP ClientInfo. Defaults to 1.0.</param>
     /// <remarks>
     /// - Uses <see cref="StdioClientTransport"/> to spawn a process and communicate via standard input/output.
-    /// - Registers a keyed singleton <see cref="McpClient"/> under <paramref name="clientName"/>.
+    /// - Registers a keyed singleton <see cref="McpClient"/> under <paramref name="mcpClientName"/>.
     /// - Suitable for MCP servers distributed as executables, .NET tools, or package runners.
     /// </remarks>
     public static void AddStdioMcpClient(
         this IHostApplicationBuilder builder,
-        string clientName,
+        string mcpClientName,
         string command,
         string[]? arguments = null,
         string? workingDirectory = null,
@@ -167,11 +167,11 @@ public static class DependencyInjectionExtensions
     {
         var services = builder.Services;
 
-        ArgumentException.ThrowIfNullOrWhiteSpace(clientName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(mcpClientName);
         ArgumentException.ThrowIfNullOrWhiteSpace(command);
 
         services.AddKeyedSingleton<McpClient>(
-            clientName,
+            mcpClientName,
             (sp, key) =>
             {
                 var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
@@ -181,7 +181,7 @@ public static class DependencyInjectionExtensions
                     {
                         ClientInfo = new Implementation
                         {
-                            Name = clientName,
+                            Name = mcpClientName,
                             Version = version?.ToString() ?? new ApiVersion(1, 0).ToString(),
                         },
                     };
@@ -189,7 +189,7 @@ public static class DependencyInjectionExtensions
                 StdioClientTransportOptions stdioOptions =
                     new()
                     {
-                        Name = $"{clientName}StdioClient",
+                        Name = $"{mcpClientName}StdioClient",
                         Command = command,
                         Arguments = arguments ?? [],
                         WorkingDirectory = workingDirectory,

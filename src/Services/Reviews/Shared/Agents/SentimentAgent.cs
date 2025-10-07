@@ -9,9 +9,12 @@ namespace GenAIEshop.Reviews.Shared.Agents;
 public static class SentimentAgent
 {
     private const string Name = GenAIEshop.Shared.Constants.Agents.SentimentAgent;
+    
+    // Used by Other agents for agent discovery and routing - helps other agents understand what this agent can do
     private const string Description =
         "An agent that get input from previous chat history or agent and evaluates the sentiment of input data as negative, positive, or neutral.";
 
+    // Used by The agent itself internally and guides the agent's behavior and responsibility - how it should think and respond
     private const string Instructions = """
         You are a sentiment analysis assistant for GenAI-eShop. Your role is to evaluate the emotional tone of user messages that have been processed by other Agent.
 

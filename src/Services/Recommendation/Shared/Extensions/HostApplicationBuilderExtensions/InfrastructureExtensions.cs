@@ -49,6 +49,13 @@ public static class HostApplicationBuilderExtensions
             mcpServerUrl: $"https+http://{AspireApplicationResources.Api.McpServerApi}"
         );
 
+        // ref: https://github.com/modelcontextprotocol/servers/tree/main/src/time
+        builder.AddStdioMcpClient(
+            mcpClientName: Mcp.DateTimeMcpTools,
+            command: "docker",
+            arguments: ["run", "-i", "--rm", "-e", "LOCAL_TIMEZONE", "mcp/time"]
+        );
+
         AddAgents(builder);
     }
 

@@ -9,9 +9,12 @@ namespace GenAIEshop.Reviews.Shared.Agents;
 public static class SummerizeAgent
 {
     private const string Name = GenAIEshop.Shared.Constants.Agents.SummarizeAgent;
+    
+    // Used by Other agents for agent discovery and routing - helps other agents understand what this agent can do
     private const string Description =
         "An agent that summarizes product reviews and comments while preserving key insights and sentiment.";
 
+    // Used by The agent itself internally and guides the agent's behavior and responsibility - how it should think and respond
     private const string Instructions = """
         You are a content summarization assistant for GenAI-eShop. Your role is to process English text from the other agents and create concise, meaningful summaries.
 

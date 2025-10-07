@@ -20,8 +20,11 @@ namespace GenAIEshop.Reviews.Shared.Agents;
 public static class ReviewsAgent
 {
     private const string Name = GenAIEshop.Shared.Constants.Agents.ReviewsAgent;
+    
+    // Used by Other agents for agent discovery and routing - helps other agents understand what this agent can do
     private const string Description = "Provides comprehensive product review analysis and quality assessment.";
-
+    
+    // Used by: The agent itself internally and guides the agent's behavior and responsibility - how it should think and respond
     private const string Instructions = """
         You are responsible for comprehensive product review analysis and quality assessment for GenAI-Eshop.
 

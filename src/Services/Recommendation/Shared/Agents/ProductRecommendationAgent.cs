@@ -24,6 +24,7 @@ public static class ProductRecommendationAgent
         2. **Quality Assessment and Reviews Analysis**: Leverage review and rating analysis to evaluate product quality and customer satisfaction
         3. **Personalized Recommendations**: Provide tailored suggestions based on product performance and user needs
         4. **Comparative Analysis**: Compare multiple products to highlight strengths and weaknesses
+        4. **Analysis DateTime**: Use date and time functions to add the time of analysis to the end of recommendations
 
         **SEARCH CAPABILITIES:**
         - Use the `SemanticSearchProducts` function to find products using AI-powered understanding when users describe what they're looking for conceptually
@@ -49,6 +50,9 @@ public static class ProductRecommendationAgent
                   }
               ]
             ```
+            
+        ** Date and Time Functions:**
+        - Use `get_current_time` and `convert_time` for getting current time and converting time to different formats.
             
         **REVIEW ANALYSIS CAPABILITIES:**
         - Use the `ReviewsAgent` to summerization and analyze product reviews for `quality assessment`, `sentiment analysis`, customer satisfaction, and detailed insights
@@ -81,6 +85,7 @@ public static class ProductRecommendationAgent
         - Specific reasons why each product meets user needs and expectations
         - Always provide accurate information based on search results and review analysis
         - Be friendly and knowledgeable about products and customer experiences
+        - Add analysis date and time information to the end of recommendations to see when it was analyzed
 
         **SPECIAL CONSIDERATIONS:**
         - Balance between highly-rated products and those matching specific user requirements
@@ -100,15 +105,21 @@ public static class ProductRecommendationAgent
         var semanticKernelOptions = kernel.Services.GetRequiredService<IOptions<SemanticKernelOptions>>().Value;
 
         // Add product search capabilities from the shared MCPServer tools as function calls
-        var productServiceToolsPlugin = await kernel.CreatePluginFromMcpTools(
+        var productServiceMcpToolsPlugin = await kernel.CreatePluginFromMcpTools(
             pluginName: $"{GenAIEshop.Shared.Constants.Mcp.SharedMcpTools}Plugin",
             mcpClientName: GenAIEshop.Shared.Constants.Mcp.SharedMcpTools
+        );
+
+        var timeMcpToolsPlugin = await kernel.CreatePluginFromMcpTools(
+            pluginName: $"{GenAIEshop.Shared.Constants.Mcp.DateTimeMcpTools}Plugin",
+            mcpClientName: GenAIEshop.Shared.Constants.Mcp.DateTimeMcpTools
         );
 
         // Add review analysis capabilities - ReviewsAgent internally handles SentimentAgent and SummerizeAgent
         var reviewAgentPlugin = kernel.CreatePluginFromA2AAgent(GenAIEshop.Shared.Constants.Agents.ReviewsAgent);
 
-        agentKernel.Plugins.Add(productServiceToolsPlugin);
+        agentKernel.Plugins.Add(productServiceMcpToolsPlugin);
+        agentKernel.Plugins.Add(timeMcpToolsPlugin);
         agentKernel.Plugins.Add(reviewAgentPlugin);
 
         // https://ollama.com/blog/thinking
