@@ -1,5 +1,4 @@
 using BuildingBlocks.AI.SemanticKernel;
-using BuildingBlocks.Env;
 using BuildingBlocks.OpenApi;
 using BuildingBlocks.ProblemDetails;
 using BuildingBlocks.Serialization;

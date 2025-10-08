@@ -48,167 +48,85 @@ var qdrant = builder
 var catalogsApi = builder
     .AddProject<Projects.Catalogs>(AspireApplicationResources.Api.CatalogsApi)
     .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
-    .WithReference(catalogsPostgres)
-    .WaitFor(catalogsPostgres)
-    .WithReference(qdrant)
-    .WaitFor(qdrant)
+    // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
+    .WithHttpHealthCheck("/health")
     // .WithReference(ollamaChat)
     // .WaitFor(ollamaChat)
     // .WithReference(ollamaEmbedding)
     // .WaitFor(ollamaEmbedding)
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/launch-profiles#control-launch-profile-selection
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#launch-profiles
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#ports-and-proxies
-    // .NET Aspire will parse the launchSettings.json file selecting the appropriate launch profile and automatically generate endpoints
-    .WithEndpoint(
-        "https",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    )
-    .WithEndpoint(
-        "http",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    );
+    .WithReference(catalogsPostgres)
+    .WaitFor(catalogsPostgres)
+    .WithReference(qdrant)
+    .WaitFor(qdrant);
 
 var reviewsApi = builder
     .AddProject<Projects.Reviews>(AspireApplicationResources.Api.ReviewsApi)
     .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
+    // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
+    .WithHttpHealthCheck("/health")
     .WithReference(reviewsPostgres)
     .WaitFor(reviewsPostgres)
     // .WithReference(ollamaChat)
     // .WaitFor(ollamaChat)
     // .WithReference(ollamaEmbedding)
     // .WaitFor(ollamaEmbedding)
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/launch-profiles#control-launch-profile-selection
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#launch-profiles
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#ports-and-proxies
-    // .NET Aspire will parse the launchSettings.json file selecting the appropriate launch profile and automatically generate endpoints
-    .WithEndpoint(
-        "https",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    )
-    .WithEndpoint(
-        "http",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    );
+    .WaitFor(catalogsApi)
+    .WithReference(catalogsApi); // for service discovery
 
 var ordersApi = builder
     .AddProject<Projects.Orders>(AspireApplicationResources.Api.OrdersApi)
     .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
+    // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
+    .WithHttpHealthCheck("/health")
     .WithReference(ordersPostgres)
     .WaitFor(ordersPostgres)
     // .WithReference(ollamaChat)
     // .WaitFor(ollamaChat)
     // .WithReference(ollamaEmbedding)
     // .WaitFor(ollamaEmbedding)
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/launch-profiles#control-launch-profile-selection
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#launch-profiles
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#ports-and-proxies
-    // .NET Aspire will parse the launchSettings.json file selecting the appropriate launch profile and automatically generate endpoints
-    .WithEndpoint(
-        "https",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    )
-    .WithEndpoint(
-        "http",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    );
+    .WaitFor(catalogsApi)
+    .WithReference(catalogsApi);
 
 var cartsApi = builder
     .AddProject<Projects.Carts>(AspireApplicationResources.Api.CartsApi)
     .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
+    // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
+    .WithHttpHealthCheck("/health")
     .WithReference(redis)
     .WaitFor(redis)
     // .WithReference(ollamaChat)
     // .WaitFor(ollamaChat)
     // .WithReference(ollamaEmbedding)
     // .WaitFor(ollamaEmbedding)
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/launch-profiles#control-launch-profile-selection
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#launch-profiles
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#ports-and-proxies
-    // .NET Aspire will parse the launchSettings.json file selecting the appropriate launch profile and automatically generate endpoints
-    .WithEndpoint(
-        "https",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    )
-    .WithEndpoint(
-        "http",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    );
-
-var recommendationApi = builder
-    .AddProject<Projects.Carts>(AspireApplicationResources.Api.RecommendationApi)
-    .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
-    // .WithReference(ollamaChat)
-    // .WaitFor(ollamaChat)
-    // .WithReference(ollamaEmbedding)
-    // .WaitFor(ollamaEmbedding)
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/launch-profiles#control-launch-profile-selection
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#launch-profiles
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#ports-and-proxies
-    // .NET Aspire will parse the launchSettings.json file selecting the appropriate launch profile and automatically generate endpoints
-    .WithEndpoint(
-        "https",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    )
-    .WithEndpoint(
-        "http",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    );
+    .WaitFor(catalogsApi)
+    .WithReference(catalogsApi);
 
 var mcpServerApi = builder
     .AddProject<Projects.McpServer>(AspireApplicationResources.Api.McpServerApi)
     .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
+    // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
+    .WithHttpHealthCheck("/health")
     // .WithReference(ollamaChat)
     // .WaitFor(ollamaChat)
     // .WithReference(ollamaEmbedding)
     // .WaitFor(ollamaEmbedding)
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/launch-profiles#control-launch-profile-selection
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#launch-profiles
-    // https://learn.microsoft.com/en-us/dotnet/aspire/fundamentals/networking-overview#ports-and-proxies
-    // .NET Aspire will parse the launchSettings.json file selecting the appropriate launch profile and automatically generate endpoints
-    .WithEndpoint(
-        "https",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    )
-    .WithEndpoint(
-        "http",
-        endpoint =>
-        {
-            endpoint.IsProxied = true;
-        }
-    );
+    .WaitFor(catalogsApi)
+    .WithReference(catalogsApi);
+
+var recommendationApi = builder
+    .AddProject<Projects.Recommendation>(AspireApplicationResources.Api.RecommendationApi)
+    .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
+    // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
+    .WithHttpHealthCheck("/health")
+    // .WithReference(ollamaChat)
+    // .WaitFor(ollamaChat)
+    // .WithReference(ollamaEmbedding)
+    // .WaitFor(ollamaEmbedding)
+    .WaitFor(catalogsApi)
+    .WithReference(catalogsApi)
+    .WaitFor(reviewsApi)
+    .WithReference(reviewsApi)
+    .WaitFor(mcpServerApi)
+    .WithReference(mcpServerApi);
 
 await builder.Build().RunAsync();
