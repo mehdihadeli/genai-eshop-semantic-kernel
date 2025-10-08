@@ -18,10 +18,6 @@
   </ItemGroup>
   
   <ItemGroup>
-    <Folder Include="AspireIntegrations\" />
-  </ItemGroup>
-  
-  <ItemGroup>
     <ProjectReference Include="..\..\Mcp\McpServer\McpServer.csproj" />
     <ProjectReference Include="..\..\Services\Carts\Carts.csproj" />
     <ProjectReference Include="..\..\Services\Catalogs\Catalogs.csproj" />

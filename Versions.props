@@ -1,6 +1,5 @@
 <Project>
   <PropertyGroup>
     <ApiVersioningVersion>8.1.0</ApiVersioningVersion>
-    <MicorosoftExtensionsVersion>9.7.0</MicorosoftExtensionsVersion>
   </PropertyGroup>
 </Project>

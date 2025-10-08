@@ -41,20 +41,7 @@ public static class DependencyInjectionExtensions
             case ProviderType.Ollama:
                 // https://learn.microsoft.com/en-us/dotnet/aspire/community-toolkit/ollama?tabs=dotnet-cli%2Cdocker#client-integration
                 // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/chat-completion/?tabs=csharp-Ollama%2Cpython-AzureOpenAI%2Cjava-AzureOpenAI&pivots=programming-language-csharp
-                if (builder.Configuration.GetConnectionString(AspireResources.OllamaChat) is { } connectionString)
-                {
-                    var connectionBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
-                    if (connectionBuilder.ContainsKey("Endpoint"))
-                    {
-                        options.ChatEndpoint = connectionBuilder["Endpoint"].ToString();
-                    }
-
-                    if (connectionBuilder.ContainsKey("Model"))
-                    {
-                        options.ChatModel = (string)connectionBuilder["Model"];
-                    }
-                }
+                CheckAspireChatModelOption(builder, options);
 
                 ArgumentException.ThrowIfNullOrEmpty(options.ChatEndpoint);
                 ArgumentException.ThrowIfNullOrEmpty(options.ChatModel);
@@ -113,20 +100,7 @@ public static class DependencyInjectionExtensions
             case ProviderType.Ollama:
                 // https://learn.microsoft.com/en-us/dotnet/aspire/community-toolkit/ollama?tabs=dotnet-cli%2Cdocker#client-integration
                 // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/embedding-generation/?tabs=csharp-Ollama&pivots=programming-language-csharp
-                if (builder.Configuration.GetConnectionString(AspireResources.OllamaEmbedding) is { } connectionString)
-                {
-                    var connectionBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
-                    if (connectionBuilder.ContainsKey("Endpoint"))
-                    {
-                        options.EmbeddingEndpoint = connectionBuilder["Endpoint"].ToString();
-                    }
-
-                    if (connectionBuilder.ContainsKey("Model"))
-                    {
-                        options.EmbeddingModel = (string)connectionBuilder["Model"];
-                    }
-                }
+                CheckAspireEmbeddingModelOption(builder, options);
 
                 if (string.IsNullOrEmpty(options.EmbeddingEndpoint) || string.IsNullOrEmpty(options.EmbeddingModel))
                     return;
@@ -171,10 +145,7 @@ public static class DependencyInjectionExtensions
         // https://devblogs.microsoft.com/semantic-kernel/observability-in-semantic-kernel/
         // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/gen-ai/README.md
         // https://learn.microsoft.com/en-us/semantic-kernel/concepts/enterprise-readiness/observability/telemetry-with-aspire-dashboard?tabs=Powershell&pivots=programming-language-csharp
-        AppContext.SetSwitch(
-            "Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive",
-            builder.Environment.IsDevelopment()
-        );
+        AppContext.SetSwitch("Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive", true);
 
         builder
             .Services.AddOpenTelemetry()
@@ -186,5 +157,43 @@ public static class DependencyInjectionExtensions
             .WithTracing(tracing =>
                 tracing.AddSource(TaskManager.ActivitySource.Name).AddSource(A2AJsonRpcProcessor.ActivitySource.Name)
             );
+    }
+
+    private static void CheckAspireEmbeddingModelOption(IHostApplicationBuilder builder, SemanticKernelOptions options)
+    {
+        if (builder.Configuration.GetConnectionString(AspireResources.OllamaEmbedding) is { } connectionString)
+        {
+            var connectionBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+
+            if (connectionBuilder.ContainsKey("Endpoint"))
+            {
+                options.EmbeddingEndpoint = connectionBuilder["Endpoint"].ToString();
+            }
+
+            if (connectionBuilder.ContainsKey("Model"))
+            {
+                options.EmbeddingModel = (string)connectionBuilder["Model"];
+            }
+        }
+    }
+
+    private static void CheckAspireChatModelOption(IHostApplicationBuilder builder, SemanticKernelOptions options)
+    {
+        if (builder.Configuration.GetConnectionString(AspireResources.OllamaChat) is { } connectionString)
+        {
+            var connectionBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
+
+            if (connectionBuilder.ContainsKey("Endpoint"))
+            {
+                // override existing chat endpoint with aspire connection string
+                options.ChatEndpoint = connectionBuilder["Endpoint"].ToString();
+            }
+
+            if (connectionBuilder.ContainsKey("Model"))
+            {
+                // override the existing chat model with aspire connection string
+                options.ChatModel = (string)connectionBuilder["Model"];
+            }
+        }
     }
 }
