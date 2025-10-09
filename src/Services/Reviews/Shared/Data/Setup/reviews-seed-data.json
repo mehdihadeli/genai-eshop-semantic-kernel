@@ -146,6 +146,76 @@
       "UserId": "8b9c0d1e-2f3a-4b8c-9d1e-2f3a4b5c6d7e",
       "Rating": 5,
       "Comment": "Nintendo Switch OLED is the definitive version of the Switch. The OLED screen makes colors pop and games look amazing in handheld mode. Improved speakers provide better audio. The enhanced kickstand is much more stable for tabletop gaming. Perfect for both casual and dedicated gamers."
+    },
+    {
+      "Id": "B6D88C31-47CB-48A9-8266-C43F5D37A5EB",
+      "ProductId": "1cebd88a-4522-418a-a1ce-53a550695914",
+      "UserId": "846A18CA-40AC-4924-A3DD-CEED5C566FBB",
+      "Rating": 5,
+      "Comment": "I use these Wireless Bluetooth Headphones for my daily commute and they are a lifesaver. The noise cancellation effectively blocks out the subway noise, and the 30-hour battery means I only charge them once a week. The comfort is unmatched!"
+    },
+    {
+      "Id": "550B4236-BB11-4CC0-9876-CA80D54A3622",
+      "ProductId": "1cebd88a-4522-418a-a1ce-53a550695914",
+      "UserId": "AA18C52F-9BB9-4D35-A879-0FE9398E6FCF",
+      "Rating": 3,
+      "Comment": "The sound quality on these headphones is good, but I've had some connectivity issues when my phone is in my pocket. The comfort is great for the first hour, but then my ears start to get a bit warm. They're decent for the price."
+    },
+    {
+      "Id": "7A90D128-4BA3-4204-9D4C-AC462C469CF0",
+      "ProductId": "3a4b5c6d-7e8f-4012-93a4-b5c6d7e8f901",
+      "UserId": "7D5461C4-10E6-4566-8C00-C5F3A6DA5614",
+      "Rating": 5,
+      "Comment": "The Apple Watch Series 8 has been incredible for fitness tracking. The heart rate monitor is accurate, and the sleep tracking gives me great insights. The cellular feature is a game-changer for going on runs without my phone."
+    },
+    {
+      "Id": "41428EBE-925F-41F4-B28A-913B94143497",
+      "ProductId": "3a4b5c6d-7e8f-4012-93a4-b5c6d7e8f901",
+      "UserId": "F6134F96-1D63-46E8-993E-5E93EA923239",
+      "Rating": 4,
+      "Comment": "Upgraded from a Series 5 and the difference is noticeable. The screen is brighter and the new temperature sensor is a unique addition. I still wish the battery lasted more than a day, but it charges so fast it's a minor inconvenience."
+    },
+    {
+      "Id": "5CAB8B8D-F806-4932-ABEB-03C58311C8AD",
+      "ProductId": "4b5c6d7e-8f90-4123-a4b5-c6d7e8f90123",
+      "UserId": "E9CEE26A-09D8-42DF-963F-85E69ED12108",
+      "Rating": 5,
+      "Comment": "As a developer, the Dell XPS 13 is perfect. It's incredibly lightweight, the keyboard is a dream to type on all day, and the performance handles multiple VMs without a hiccup. The build quality is solid and it looks professional."
+    },
+    {
+      "Id": "8B46EE76-8BF4-490C-B7B6-3F8BD9B4402C",
+      "ProductId": "4b5c6d7e-8f90-4123-a4b5-c6d7e8f90123",
+      "UserId": "0CE83315-75F2-4A79-9271-678BE4AA0E7C",
+      "Rating": 4,
+      "Comment": "This laptop is a powerhouse in a tiny frame. The screen is beautiful and the performance is top-notch. My only gripe is the lack of a dedicated HDMI port, requiring me to carry a dongle for presentations. Otherwise, it's nearly perfect."
+    },
+    {
+      "Id": "14B57473-8BFE-4881-9521-25E6CDB8FB2C",
+      "ProductId": "e56789ab-cdef-4bcd-4567-89abcdef0123",
+      "UserId": "23F1CB29-08B0-4017-B847-74439974A25A",
+      "Rating": 5,
+      "Comment": "I bought this ASUS ROG Gaming Laptop for the new AAA titles, and it does not disappoint. The RTX 4070 crushes every game at max settings on the 360Hz screen. It's also surprisingly manageable for a 17-inch laptop. A true desktop replacement."
+    },
+    {
+      "Id": "F6ECCEA9-DD30-4F2B-BB8F-52BC53BD5F55",
+      "ProductId": "e56789ab-cdef-4bcd-4567-89abcdef0123",
+      "UserId": "3A160796-8FD4-4A4E-9912-2AC301B08944",
+      "Rating": 4,
+      "Comment": "The performance is insane and the cooling system is very effective, though the fans can get loud under heavy load. The keyboard is great for both gaming and typing. It's an investment, but if you're serious about gaming, it's worth it."
+    },
+    {
+      "Id": "7226B03A-B751-4C12-B7D0-777515EE38A2",
+      "ProductId": "b2345678-9abc-489a-1234-56789abcdef0",
+      "UserId": "A89B5728-81B7-4CBE-8BD8-596402FAEBB5",
+      "Rating": 5,
+      "Comment": "Upgraded from the XM4s and the Sony WH-1000XM5s are a clear step up. The noise cancellation is even more intelligent, and the call quality is phenomenal—people say it sounds like I'm in a quiet room even when I'm on a busy street."
+    },
+    {
+      "Id": "F5D3D7F0-D106-4034-8151-4C45BCDE6B30",
+      "ProductId": "b2345678-9abc-489a-1234-56789abcdef0",
+      "UserId": "1A95DCC3-7C74-4C30-8831-4D415ED380ED",
+      "Rating": 4,
+      "Comment": "The sound and noise cancellation on these Sony headphones are second to none. They are incredibly comfortable. The only reason I'm not giving 5 stars is that the case doesn't fold flat, which is a bit annoying for packing. A small flaw for an otherwise perfect product."
     }
   ]
 }

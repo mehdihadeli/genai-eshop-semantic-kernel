@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.VectorData;
+using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace BuildingBlocks.VectorDB.SearchServices;
@@ -18,6 +19,7 @@ public sealed class SemanticSearch(
     IChatCompletionService chatCompletionService,
     IEmbeddingGenerator<string, Embedding<float>> embeddingGenerator,
     VectorStore vectorStore,
+    Kernel kernel,
     IOptions<SemanticKernelOptions> semanticKernelOptions
 ) : ISemanticSearch
 {
@@ -25,7 +27,7 @@ public sealed class SemanticSearch(
 
     private const string InitPrompt =
         @"
-You are an intelligent, friendly e-commerce assistant designed to help shoppers understand their search results. 
+You are an intelligent, friendly GenAI-Eshop assistant designed to help users understand their search results. 
 
 Follow these guidelines in every response:
 - Always respond in a warm, professional, and conversational tone.
@@ -58,12 +60,12 @@ Follow these guidelines in every response:
 
         var collection = vectorStore.GetCollection<Guid, TVectorEntity>(typeof(TVectorEntity).Name.Underscore());
         await collection.EnsureCollectionExistsAsync(cancellationToken);
-        var vectorCollection = (IKeywordHybridSearchable<TVectorEntity>)collection;
 
         // https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/hybrid-search?pivots=programming-language-csharp#top-and-skip
         var options = new HybridSearchOptions<TVectorEntity>
         {
             VectorProperty = r => r.Vector,
+            // field to search on the full-text search column with `IsFullTextIndexed=true` attribute
             AdditionalProperty = fullTextSearchFiled ?? (r => r.Description),
             Skip = skip,
             IncludeVectors = false,
@@ -71,6 +73,7 @@ Follow these guidelines in every response:
             Filter = filter,
         };
 
+        var vectorCollection = (IKeywordHybridSearchable<TVectorEntity>)collection;
         // https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/hybrid-search?pivots=programming-language-csharp
         // keywords will use to search on full-text search column with `IsFullTextIndexed=true` attribute
         var searchResults = vectorCollection.HybridSearchAsync(
@@ -146,7 +149,8 @@ User searched for: {searchTerm}
             var aiResponse = await chatCompletionService.GetChatMessageContentAsync(
                 chatHistory: history,
                 // https://ollama.com/blog/thinking
-                executionSettings: SemanticKernelExecutionSettings.GetDefaultSettings(_semanticKernelOptions),
+                executionSettings: SemanticKernelExecutionSettings.GetProviderExecutionSettings(_semanticKernelOptions),
+                kernel: kernel,
                 cancellationToken: cancellationToken
             );
 
@@ -173,9 +177,6 @@ User searched for: {searchTerm}
         where TVectorEntity : VectorEntityBase
         where TEntity : Entity
     {
-        // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/embedding-generation/?tabs=csharp-Ollama&pivots=programming-language-csharp#using-text-embedding-generation-services
-        var vector = await embeddingGenerator.GenerateVectorAsync(searchTerm, cancellationToken: cancellationToken);
-
         var collection = vectorStore.GetCollection<Guid, TVectorEntity>(typeof(TVectorEntity).Name.Underscore());
         await collection.EnsureCollectionExistsAsync(cancellationToken);
 
@@ -188,6 +189,8 @@ User searched for: {searchTerm}
             Filter = filter,
         };
 
+        // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/embedding-generation/?tabs=csharp-Ollama&pivots=programming-language-csharp#using-text-embedding-generation-services
+        var vector = await embeddingGenerator.GenerateVectorAsync(searchTerm, cancellationToken: cancellationToken);
         var searchResults = collection.SearchAsync(
             searchValue: vector,
             top: take,
@@ -265,7 +268,8 @@ Make the response sound natural and helpful to the user.
                 // https://ollama.com/blog/thinking
                 // - in ollama cli we can `ollama run qwen3:0.6b --think=false` to turn off thinking
                 // - in ollama api with passing `think=false` as parameter
-                executionSettings: SemanticKernelExecutionSettings.GetDefaultSettings(_semanticKernelOptions),
+                executionSettings: SemanticKernelExecutionSettings.GetProviderExecutionSettings(_semanticKernelOptions),
+                kernel: kernel,
                 cancellationToken: cancellationToken
             );
 

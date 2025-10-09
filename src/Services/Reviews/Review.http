@@ -38,10 +38,6 @@ Accept: application/json
 POST {{baseUrl}}/api/v1/reviews/{{productId}}/analyze?AgentOrchestrationType=GroupChat
 Accept: application/json
 
-### Analyze product reviews with AI with HandOff orchestration mode
-POST {{baseUrl}}/api/v1/reviews/{{productId}}/analyze?AgentOrchestrationType=Handoff
-Accept: application/json
-
 ### Analyze product reviews with AI
 POST {{baseUrl}}/api/v1/reviews/{{productId}}/analyze
 Accept: application/json

@@ -25,9 +25,11 @@ public class ProductVectorIngestor(
 
         var vectorSearchContent =
             $"Product Name: {product.Name}. Price: {product.Price:C}. Description: {product.Description}";
+        // use this for using in full-text search in hybrid search
         var fullTextSearchContent = $"{product.Name} {product.Price:C} {product.Description}";
 
-        var embeddings = await embeddingGenerator.GenerateVectorAsync(
+        // use this to store semantic meaning of the product in the type of vector in the vector store
+        var embeddingsVector = await embeddingGenerator.GenerateVectorAsync(
             value: vectorSearchContent,
             cancellationToken: cancellationToken
         );
@@ -37,7 +39,7 @@ public class ProductVectorIngestor(
             Id = product.Id,
             // use for full-text search
             Description = fullTextSearchContent,
-            Vector = embeddings,
+            Vector = embeddingsVector,
             // these fields are used just for filtering in VectorSearch
             Name = product.Name,
             Price = (double)product.Price,

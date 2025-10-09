@@ -109,7 +109,6 @@ public static class HostApplicationBuilderExtensions
 
         builder.Services.AddSingleton<ReviewsSequentialOrchestrationAgent>();
         builder.Services.AddSingleton<ReviewsChatOrchestrationAgent>();
-        builder.Services.AddSingleton<ReviewsHandOffOrchestrationAgent>();
         builder.Services.AddSingleton<IReviewsOrchestrationService, ReviewsOrchestrationService>();
         builder.Services.AddSingleton<IntelligentReviewsChatManager>();
     }

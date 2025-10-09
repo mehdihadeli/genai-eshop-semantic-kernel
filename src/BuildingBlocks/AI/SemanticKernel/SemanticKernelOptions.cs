@@ -16,6 +16,7 @@ public class SemanticKernelOptions
     public ProviderType EmbeddingProviderType { get; set; } = ProviderType.Ollama;
     public float Temperature { get; set; } = 0.8f;
     public double? SearchThreshold { get; set; }
+    public int MaximumInvocationCount { get; set; }
 
     public Dictionary<string, object> ChatExtensionData { get; set; } = new();
 }

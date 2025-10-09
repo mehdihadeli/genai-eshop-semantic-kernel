@@ -62,11 +62,6 @@ public sealed class AnalyzeProductReviewsHandler(
                     analysisRequest
                 );
                 break;
-            case AgentOrchestrationType.Handoff:
-                message = await reviewsOrchestrationService.AnalyzeReviewsUsingHandOffOrchestrationAsync(
-                    analysisRequest
-                );
-                break;
             default:
                 throw new ArgumentOutOfRangeException();
         }

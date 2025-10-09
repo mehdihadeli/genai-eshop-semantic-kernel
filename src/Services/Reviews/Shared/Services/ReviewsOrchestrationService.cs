@@ -1,4 +1,4 @@
-using BuildingBlocks.AI.SemanticKernel;
+﻿using BuildingBlocks.AI.SemanticKernel;
 using GenAIEshop.Reviews.Shared.Agents.OrchestrationsAgents;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
@@ -14,7 +14,6 @@ namespace GenAIEshop.Reviews.Shared.Services;
 
 public class ReviewsOrchestrationService(
     ReviewsSequentialOrchestrationAgent reviewsSequentialOrchestrationAgent,
-    ReviewsHandOffOrchestrationAgent reviewsHandOffOrchestrationAgent,
     ReviewsChatOrchestrationAgent reviewsChatOrchestrationAgent,
     IntelligentReviewsChatManager intelligentReviewsChatManager,
     IChatCompletionService chatCompletionService,
@@ -24,86 +23,6 @@ public class ReviewsOrchestrationService(
 ) : IReviewsOrchestrationService
 {
     private readonly ChatHistory _history = new();
-
-    public async Task<string> AnalyzeReviewsUsingHandOffOrchestrationAsync(string prompt)
-    {
-        // https://learn.microsoft.com/en-us/semantic-kernel/frameworks/agent/agent-orchestration/handoff?pivots=programming-language-csharp
-        // https://learn.microsoft.com/en-us/semantic-kernel/frameworks/agent/agent-orchestration/?pivots=programming-language-csharp#preparing-your-development-environment
-        _history.Add(new ChatMessageContent(AuthorRole.User, prompt));
-
-        // A runtime is required to manage the execution of agents. Here, we use InProcessRuntime and start it before invoking the orchestration.
-        var runtime = new InProcessRuntime();
-        await runtime.StartAsync();
-
-        var handoffs = OrchestrationHandoffs
-            .StartWith(reviewsHandOffOrchestrationAgent.ReviewsCollectorAgent)
-            // .Add(
-            //     source: reviewsHandOffOrchestrationAgent.ReviewsCollectorAgent,
-            //     reviewsHandOffOrchestrationAgent.LanguageAgent,
-            //     reviewsHandOffOrchestrationAgent.SentimentAgent,
-            //     reviewsHandOffOrchestrationAgent.InsightsSynthesizerAgent
-            // )
-            // Primary analysis pipeline (mimics your selection rules)
-            .Add(
-                reviewsHandOffOrchestrationAgent.ReviewsCollectorAgent.Name!,
-                reviewsHandOffOrchestrationAgent.LanguageAgent.Name!,
-                "When users collecting and fetching reviews data completed hand off to language processing agent which is `LanguageAgent`"
-            )
-            .Add(
-                reviewsHandOffOrchestrationAgent.LanguageAgent.Name,
-                reviewsHandOffOrchestrationAgent.SentimentAgent.Name!,
-                "When processing language translation completed hand off to sentiment processing agent which is `SentimentAgent`"
-            )
-            .Add(
-                reviewsHandOffOrchestrationAgent.SentimentAgent.Name,
-                reviewsHandOffOrchestrationAgent.InsightsSynthesizerAgent.Name,
-                "When sentiment analysis completed hand off to insights synthesizer processing agent which is `InsightsSynthesizerAgent`"
-            )
-        // Error recovery and clarification (mimics your edge cases)
-        // .Add(
-        //     reviewsHandOffOrchestrationAgent.InsightsSynthesizerAgent.Name,
-        //     reviewsHandOffOrchestrationAgent.ReviewsCollectorAgent.Name,
-        //     "Hand back for additional review data when final report needs more information"
-        // )
-        // .Add(
-        //     reviewsHandOffOrchestrationAgent.InsightsSynthesizerAgent.Name,
-        //     reviewsHandOffOrchestrationAgent.SentimentAgent.Name,
-        //     "Hand back for deeper sentiment analysis when final report needs more emotional insights"
-        // )
-        // .Add(
-        //     reviewsHandOffOrchestrationAgent.SentimentAgent.Name,
-        //     reviewsHandOffOrchestrationAgent.LanguageAgent.Name,
-        //     "Hand back for translation clarification when sentiment analysis encounters language issues"
-        // )
-        ;
-
-        HandoffOrchestration handoffOrchestration =
-            new(
-                handoffs,
-                reviewsChatOrchestrationAgent.ReviewsCollectorAgent,
-                reviewsChatOrchestrationAgent.LanguageAgent,
-                reviewsChatOrchestrationAgent.SentimentAgent,
-                reviewsChatOrchestrationAgent.InsightsSynthesizerAgent
-            )
-            {
-                ResponseCallback = ResponseCallbackAsync,
-                InputTransform = InputTransformAsync,
-                ResultTransform = ResultTransformAsync,
-                Name = "Reviews Orchestration",
-            };
-
-        // Invoke the orchestration with an initial prompt.
-        var result = await handoffOrchestration.InvokeAsync(prompt, runtime);
-
-        // Wait for the orchestration to complete and retrieve the final output.
-        string output = await result.GetValueAsync(TimeSpan.FromSeconds(60));
-
-        await runtime.RunUntilIdleAsync();
-
-        _history.Clear();
-
-        return output;
-    }
 
     public async Task<string> AnalyzeReviewsUsingChatGroupOrchestrationAsync(string prompt)
     {

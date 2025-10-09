@@ -16,6 +16,7 @@
         <PackageReference Include="Microsoft.AspNetCore.OpenApi"/>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
         <PackageReference Include="Scalar.AspNetCore"/>
+        <PackageReference Include="Spectre.Console" />
         <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI"/>
         <PackageReference Include="System.Net.Http.Json" />
         <PackageReference Include="System.Text.Json" />

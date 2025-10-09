@@ -18,8 +18,6 @@ namespace BuildingBlocks.AI.SemanticKernel;
 
 public static class DependencyInjectionExtensions
 {
-    private const string ActivitySourceName = "Microsoft.SemanticKernel*";
-
     public static IHostApplicationBuilder AddSemanticKernel(this IHostApplicationBuilder builder)
     {
         var options = builder.Configuration.BindOptions<SemanticKernelOptions>();
@@ -147,10 +145,12 @@ public static class DependencyInjectionExtensions
         // https://learn.microsoft.com/en-us/semantic-kernel/concepts/enterprise-readiness/observability/telemetry-with-aspire-dashboard?tabs=Powershell&pivots=programming-language-csharp
         AppContext.SetSwitch("Microsoft.SemanticKernel.Experimental.GenAI.EnableOTelDiagnosticsSensitive", true);
 
+        var activitySourceName = "Microsoft.SemanticKernel*";
+
         builder
             .Services.AddOpenTelemetry()
-            .WithTracing(x => x.AddSource(ActivitySourceName))
-            .WithMetrics(x => x.AddMeter(ActivitySourceName));
+            .WithTracing(x => x.AddSource(activitySourceName))
+            .WithMetrics(x => x.AddMeter(activitySourceName));
 
         builder
             .Services.AddOpenTelemetry()

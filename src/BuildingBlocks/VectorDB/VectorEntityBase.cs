@@ -13,7 +13,7 @@ public abstract class VectorEntityBase
 
     // https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/hybrid-search?pivots=programming-language-csharp
     // https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/defining-your-data-model?pivots=programming-language-csharp#vectorstoredataattribute
-    // contains merge fields to search like: `{product.Name} {product.Price:C} {product.Description}` for doing full-text-search
+    // contains merge fields to search like: `{product.Name} {product.Price:C} {product.Description}` for doing full-text-search in hybrid-search
     [TextSearchResultValue]
     [VectorStoreData(IsFullTextIndexed = true, IsIndexed = true)]
     public string? Description { get; init; }

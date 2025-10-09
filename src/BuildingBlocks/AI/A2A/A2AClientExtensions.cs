@@ -36,6 +36,7 @@ public static class A2AClientExtensions
         // https://github.com/microsoft/semantic-kernel/blob/main/dotnet/src/Agents/A2A/A2AAgent.cs#L178
         builder.Services.AddHttpClient(agentName, client => client.BaseAddress = agentUri);
 
+        // use external service a2a based on http protocol, not json/rpc
         builder.Services.AddKeyedSingleton<A2AAgent>(
             agentName,
             (sp, _) =>
@@ -62,7 +63,7 @@ public static class A2AClientExtensions
         ArgumentNullException.ThrowIfNull(agentHostUri);
 
         var client = new A2AClient(agentHostUri, httpClient);
-        // resolve `agent card` from a2a discovery endpoint `.well-known/agent-card.json`
+        // resolve `agent card` from a2a http discovery endpoint `.well-known/agent-card.json` in the external service
         var cardResolver = new A2ACardResolver(
             baseUrl: agentHostUri,
             httpClient: httpClient,

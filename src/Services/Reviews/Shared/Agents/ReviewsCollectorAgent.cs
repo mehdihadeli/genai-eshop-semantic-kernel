@@ -16,7 +16,7 @@ public static class ReviewsCollectorAgent
         You are responsible for fetching product reviews data for analysis.
 
         **Primary Responsibilities**:
-        1. Fetch product reviews data
+        1. Fetch product reviews data, Total Reviews and Rating Distribution
         2. Structurize reviews data for analysis by next agents
 
         **Available Context for Concise Analysis**:**:

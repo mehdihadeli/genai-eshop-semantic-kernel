@@ -53,6 +53,9 @@ public static class SemanticKernelExecutionSettings
 
                 return new OllamaPromptExecutionSettings
                 {
+                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(
+                        options: new FunctionChoiceBehaviorOptions { RetainArgumentTypes = true }
+                    ),
                     Temperature = semanticKernelOptions.Temperature,
                     ExtensionData = ollamaMergedExtensionData,
                 };

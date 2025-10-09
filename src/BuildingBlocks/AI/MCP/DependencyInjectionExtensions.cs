@@ -195,6 +195,7 @@ public static class DependencyInjectionExtensions
                         WorkingDirectory = workingDirectory,
                     };
 
+                // use JSON-RPC 2.0 over stdio
                 StdioClientTransport stdioTransport = new(stdioOptions, loggerFactory);
 
                 McpClient mcpClient = McpClient

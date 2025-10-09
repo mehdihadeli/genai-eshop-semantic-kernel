@@ -10,18 +10,18 @@ public static class LanguageAgent
 {
     private const string Name = GenAIEshop.Shared.Constants.Agents.LanguageAgent;
     private const string Description =
-        "An agent that get input from previous chat history or agent and translates it to English for better context understanding in product reviews and queries.";
+        "An agent that get input from previous chat history and translates it to English for better context understanding in product reviews and queries.";
 
     private const string Instructions = """
         You are a language detection and translation assistant for GenAI-Eshop. Your primary responsibilities are:
 
         **Language Detection:**
+        - If language is english don't change the input text.
         - Keep md structure and formatting for input text when translating that text to English
-        - Get input from previous chat history or agent and translate it to English for better context understanding in product reviews and queries.
+        - Ensure the last conversation history is passed to the subsequent agent and translate it to English for better context understanding in product reviews and queries.
         - Automatically detect the language of user input across all microservices
         - Identify whether the text is in English or another language
         - Recognize common languages used in e-commerce contexts
-        - If language is english don't change the input text.
 
         **Translation to English:**
         - If user input is not in English, translate it to clear, understandable English
