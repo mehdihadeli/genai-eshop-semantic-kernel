@@ -13,7 +13,7 @@ public static class EndpointRouteBuilderExtensions
     // https://github.com/microsoft/semantic-kernel/issues/13189
     // https://github.com/a2aproject/a2a-dotnet/blob/main/src/A2A.AspNetCore/A2AEndpointRouteBuilderExtensions.cs#L52
     // https://github.com/a2aproject/a2a-dotnet/blob/main/src/A2A/Client/A2ACardResolver.cs#L24
-    public static IEndpointConventionBuilder MapWellKnownAgentCard(
+    public static IEndpointConventionBuilder MapCustomWellKnownAgentCard(
         this IEndpointRouteBuilder endpoints,
         ITaskManager taskManager,
         [StringSyntax("Route")] string agentPath

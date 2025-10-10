@@ -46,7 +46,7 @@ public static class HostApplicationBuilderExtensions
 
         builder.AddHttpMcpClient(
             mcpClientName: Mcp.SharedMcpTools,
-            mcpServerUrl: $"https+http://{AspireApplicationResources.Api.McpServerApi}"
+            mcpServerHostUrl: $"https+http://{AspireApplicationResources.Api.McpServerApi}"
         );
 
         // ref: https://github.com/modelcontextprotocol/servers/tree/main/src/time

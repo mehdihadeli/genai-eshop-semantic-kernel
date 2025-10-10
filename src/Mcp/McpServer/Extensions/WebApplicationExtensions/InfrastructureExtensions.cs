@@ -17,7 +17,7 @@ public static class InfrastructureExtensions
             app.UseHttpsRedirection();
         }
 
-        app.MapMcp();
+        app.MapMcp("mcp");
 
         return app;
     }

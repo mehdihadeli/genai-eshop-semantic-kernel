@@ -2,6 +2,7 @@
     <ItemGroup Label="Infrastructure">
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
         <PackageReference Include="Bogus" />
+        <PackageReference Include="CommunityToolkit.Aspire.Hosting.McpInspector" />
         <PackageReference Include="DistributedLock.Redis" />
         <PackageReference Include="EFCore.NamingConventions" />
         <PackageReference Include="Mediator.Abstractions" />

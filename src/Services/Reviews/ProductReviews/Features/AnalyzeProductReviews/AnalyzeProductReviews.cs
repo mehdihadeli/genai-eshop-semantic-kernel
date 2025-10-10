@@ -18,7 +18,7 @@ public sealed record AnalyzeProductReviews(Guid ProductId, AgentOrchestrationTyp
 }
 
 public sealed class AnalyzeProductReviewsHandler(
-    [FromKeyedServices(GenAIEshop.Shared.Constants.Agents.ReviewsAgent)] Agent agent,
+    [FromKeyedServices(GenAIEshop.Shared.Constants.Agents.ReviewsAgent)] Agent reviewsAgent,
     IReviewsOrchestrationService reviewsOrchestrationService,
     ICatalogServiceClient catalogServiceClient,
     ILogger<AnalyzeProductReviewsHandler> logger
@@ -42,7 +42,7 @@ public sealed class AnalyzeProductReviewsHandler(
         switch (command.AgentOrchestrationType)
         {
             case AgentOrchestrationType.Normal:
-                var agentResponse = agent.InvokeAsync(message: analysisRequest, cancellationToken: ct);
+                var agentResponse = reviewsAgent.InvokeAsync(message: analysisRequest, cancellationToken: ct);
 
                 await foreach (var item in agentResponse)
                 {

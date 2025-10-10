@@ -1,6 +1,5 @@
 using System.Reflection;
 using Asp.Versioning;
-using BuildingBlocks.Serialization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -20,6 +19,7 @@ namespace BuildingBlocks.AI.MCP;
 // https://learn.microsoft.com/en-us/semantic-kernel/frameworks/agent/agent-types/chat-completion-agent?pivots=programming-language-csharp
 // https://github.com/modelcontextprotocol/csharp-sdk
 // https://github.com/modelcontextprotocol/csharp-sdk/blob/main/src/ModelContextProtocol.AspNetCore/README.md
+// https://modelcontextprotocol.io/specification/2025-06-18/basic/transports
 public static class DependencyInjectionExtensions
 {
     private const string ActivitySourceName = "Experimental.ModelContextProtocol";
@@ -71,7 +71,8 @@ public static class DependencyInjectionExtensions
     /// </summary>
     /// <param name="builder">The application builder used to access services and configuration.</param>
     /// <param name="mcpClientName">Keyed service name used to resolve the MCP client from DI.</param>
-    /// <param name="mcpServerUrl">Absolute base URL of the MCP server (for example, "https://host:port/").</param>
+    /// <param name="mcpServerHostUrl">Absolute base URL of the MCP server (for example, "https://host:port/").</param>
+    /// <param name="relativePath">mcp relative path</param>
     /// <param name="version">Client-reported version in MCP ClientInfo. Defaults to 1.0.</param>
     /// <remarks>
     /// - Uses HttpClientTransport with TransportMode = StreamableHttp.
@@ -81,6 +82,84 @@ public static class DependencyInjectionExtensions
     /// - Consider AddSseMcpClient for SSE-based servers and AddStdioMcpClient for process/STDIO servers.
     /// </remarks>
     public static void AddHttpMcpClient(
+        this IHostApplicationBuilder builder,
+        string mcpClientName,
+        string mcpServerHostUrl,
+        string relativePath = "mcp",
+        ApiVersion? version = null
+    )
+    {
+        var services = builder.Services;
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(mcpClientName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(mcpServerHostUrl);
+
+        services.AddKeyedSingleton<McpClient>(
+            mcpClientName,
+            (sp, key) =>
+            {
+                var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+
+                // it adds `ServiceEndpointResolver` in AddServiceDiscoveryCore when we register `http.AddServiceDiscovery()` for all httpclients using `ConfigureHttpClientDefaults`
+                // var resolver = sp.GetRequiredService<ServiceEndpointResolver>();
+                // https://github.com/dotnet/aspnetcore/issues/53715
+                var resolver = sp.GetRequiredService<ServiceEndpointResolver>();
+                var endpoints = resolver
+                    .GetEndpointsAsync(mcpServerHostUrl, CancellationToken.None)
+                    .GetAwaiter()
+                    .GetResult();
+
+                // because McpClient create its own HttpClient manually and don't use HttpClientFactory and our httpclient service discovery doesn't apply (through AddServiceDiscovery()), we should discover endpoint manually
+                var hostEndpoint = endpoints.Endpoints.FirstOrDefault()?.EndPoint.ToString();
+                ArgumentException.ThrowIfNullOrEmpty(hostEndpoint);
+                
+                var endpoint = new Uri(new Uri(hostEndpoint), relativePath);
+
+                McpClientOptions mcpClientOptions =
+                    new()
+                    {
+                        ClientInfo = new Implementation
+                        {
+                            Name = mcpClientName,
+                            Version = version?.ToString() ?? new ApiVersion(1, 0).ToString(),
+                        },
+                    };
+
+                // https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#streamable-http
+                HttpClientTransportOptions httpClientTransportOptions =
+                    new()
+                    {
+                        Name = $"{mcpClientName}HttpClientTransport",
+                        TransportMode = HttpTransportMode.StreamableHttp,
+                        Endpoint = endpoint,
+                    };
+
+                HttpClientTransport httpClientTransport = new(httpClientTransportOptions, loggerFactory);
+
+                McpClient mcpClient = McpClient
+                    .CreateAsync(httpClientTransport, mcpClientOptions, loggerFactory)
+                    .ConfigureAwait(false)
+                    .GetAwaiter()
+                    .GetResult();
+
+                return mcpClient;
+            }
+        );
+    }
+    
+     /// <summary>
+    /// Registers an MCP client that connects to a remote MCP server over HTTP(S) using Server-Sent Events (SSE).
+    /// </summary>
+    /// <param name="builder">The application builder used to access services and configuration.</param>
+    /// <param name="mcpClientName">Keyed service name used to resolve the MCP client from DI.</param>
+    /// <param name="mcpServerUrl">Absolute base URL of the MCP server (for example, "https://host:port/").</param>
+    /// <param name="version">Client-reported version in MCP ClientInfo. Defaults to 1.0.</param>
+    /// <remarks>
+    /// - Uses HttpClientTransport with TransportMode = Sse.
+    /// - Prefer when the server exposes an SSE endpoint for event-driven streaming from server to client.
+    /// - Throws ArgumentException if mcpServerUrl is not an absolute URI.
+    /// </remarks>
+    public static void AddHttpSseMcpClient(
         this IHostApplicationBuilder builder,
         string mcpClientName,
         string mcpServerUrl,
@@ -98,16 +177,12 @@ public static class DependencyInjectionExtensions
             {
                 var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-                // it adds `ServiceEndpointResolver` in AddServiceDiscoveryCore when we register `http.AddServiceDiscovery()` for all httpclients using `ConfigureHttpClientDefaults`
-                // var resolver = sp.GetRequiredService<ServiceEndpointResolver>();
-                // https://github.com/dotnet/aspnetcore/issues/53715
                 var resolver = sp.GetRequiredService<ServiceEndpointResolver>();
                 var endpoints = resolver
                     .GetEndpointsAsync(mcpServerUrl, CancellationToken.None)
                     .GetAwaiter()
                     .GetResult();
 
-                // because McpClient create its own HttpClient manually and don't use HttpClientFactory and our httpclient service discovery doesn't apply (through AddServiceDiscovery()), we should discover endpoint manually
                 var endpoint = endpoints.Endpoints.FirstOrDefault()?.EndPoint.ToString();
                 ArgumentException.ThrowIfNullOrEmpty(endpoint);
 
@@ -121,18 +196,19 @@ public static class DependencyInjectionExtensions
                         },
                     };
 
+                // https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#streamable-http
                 HttpClientTransportOptions httpClientTransportOptions =
                     new()
                     {
-                        Name = $"{mcpClientName}HttpClientTransport",
-                        TransportMode = HttpTransportMode.StreamableHttp,
+                        Name = $"{mcpClientName}SseClientTransport",
+                        TransportMode = HttpTransportMode.Sse,
                         Endpoint = new Uri(endpoint),
                     };
 
-                HttpClientTransport httpClientTransport = new(httpClientTransportOptions, loggerFactory);
+                HttpClientTransport sseTransport = new(httpClientTransportOptions, loggerFactory);
 
                 McpClient mcpClient = McpClient
-                    .CreateAsync(httpClientTransport, mcpClientOptions, loggerFactory)
+                    .CreateAsync(sseTransport, mcpClientOptions, loggerFactory)
                     .ConfigureAwait(false)
                     .GetAwaiter()
                     .GetResult();
@@ -143,7 +219,7 @@ public static class DependencyInjectionExtensions
     }
 
     /// <summary>
-    /// Registers an MCP client that launches and connects to an MCP server over STDIO.
+    /// Registers an MCP client that launches and connects to an MCP server over json/rpc STDIO.
     /// </summary>
     /// <param name="builder">The application builder used to access services and configuration.</param>
     /// <param name="mcpClientName">Keyed service name for resolving the <see cref="IMcpClient"/>.</param>
@@ -186,6 +262,7 @@ public static class DependencyInjectionExtensions
                         },
                     };
 
+                // https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#stdio
                 StdioClientTransportOptions stdioOptions =
                     new()
                     {

@@ -1,37 +1,41 @@
 using BuildingBlocks.Constants;
 using GenAIEshop.Shared.Constants;
+using Projects;
 
-var builder = DistributedApplication.CreateBuilder(args);
+IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
-var postgres = builder
-    .AddPostgres(name: AspireResources.Postgres)
+IResourceBuilder<PostgresServerResource> postgres = builder
+    .AddPostgres(AspireResources.Postgres)
     .WithImage("postgres", "latest")
     .WithImagePullPolicy(ImagePullPolicy.Missing);
 
-var catalogsPostgres = postgres.AddDatabase(
-    name: AspireApplicationResources.PostgresDatabase.Catalogs,
-    databaseName: nameof(AspireApplicationResources.PostgresDatabase.Catalogs).ToLowerInvariant()
+IResourceBuilder<PostgresDatabaseResource> catalogsPostgres = postgres.AddDatabase(
+    AspireApplicationResources.PostgresDatabase.Catalogs,
+    nameof(AspireApplicationResources.PostgresDatabase.Catalogs).ToLowerInvariant()
 );
 
-var ordersPostgres = postgres.AddDatabase(
-    name: AspireApplicationResources.PostgresDatabase.Orders,
-    databaseName: nameof(AspireApplicationResources.PostgresDatabase.Orders).ToLowerInvariant()
+IResourceBuilder<PostgresDatabaseResource> ordersPostgres = postgres.AddDatabase(
+    AspireApplicationResources.PostgresDatabase.Orders,
+    nameof(AspireApplicationResources.PostgresDatabase.Orders).ToLowerInvariant()
 );
 
-var reviewsPostgres = postgres.AddDatabase(
-    name: AspireApplicationResources.PostgresDatabase.Reviews,
-    databaseName: nameof(AspireApplicationResources.PostgresDatabase.Orders).ToLowerInvariant()
+IResourceBuilder<PostgresDatabaseResource> reviewsPostgres = postgres.AddDatabase(
+    AspireApplicationResources.PostgresDatabase.Reviews,
+    nameof(AspireApplicationResources.PostgresDatabase.Orders).ToLowerInvariant()
 );
 
-var redis = builder
+IResourceBuilder<RedisResource> redis = builder
     .AddRedis(AspireResources.Redis)
     .WithImagePullPolicy(ImagePullPolicy.Missing)
+    .WithIconName("Redis")
+    .WithIconName("Memory")
     .WithImage("redis/redis-stack", "latest");
 
-var qdrant = builder
+IResourceBuilder<QdrantServerResource> qdrant = builder
     .AddQdrant(AspireResources.Qdrant)
     .WithImagePullPolicy(ImagePullPolicy.Missing)
     .WithDataVolume()
+    .WithIconName("DatabaseSearch")
     .WithImage("qdrant/qdrant", "latest");
 
 // var semanticKernelOptions = builder.Configuration.BindOptions<SemanticKernelOptions>();
@@ -45,8 +49,8 @@ var qdrant = builder
 // var ollamaChat = ollama.AddModel(AspireResources.OllamaChat, semanticKernelOptions.ChatModel);
 // var ollamaEmbedding = ollama.AddModel(AspireResources.OllamaEmbedding, semanticKernelOptions.EmbeddingModel);
 
-var catalogsApi = builder
-    .AddProject<Projects.Catalogs>(AspireApplicationResources.Api.CatalogsApi)
+IResourceBuilder<ProjectResource> catalogsApi = builder
+    .AddProject<Catalogs>(AspireApplicationResources.Api.CatalogsApi)
     .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
     // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
     .WithHttpHealthCheck("/health")
@@ -59,8 +63,8 @@ var catalogsApi = builder
     .WithReference(qdrant)
     .WaitFor(qdrant);
 
-var reviewsApi = builder
-    .AddProject<Projects.Reviews>(AspireApplicationResources.Api.ReviewsApi)
+IResourceBuilder<ProjectResource> reviewsApi = builder
+    .AddProject<Reviews>(AspireApplicationResources.Api.ReviewsApi)
     .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
     // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
     .WithHttpHealthCheck("/health")
@@ -73,8 +77,8 @@ var reviewsApi = builder
     .WaitFor(catalogsApi)
     .WithReference(catalogsApi); // for service discovery
 
-var ordersApi = builder
-    .AddProject<Projects.Orders>(AspireApplicationResources.Api.OrdersApi)
+IResourceBuilder<ProjectResource> ordersApi = builder
+    .AddProject<Orders>(AspireApplicationResources.Api.OrdersApi)
     .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
     // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
     .WithHttpHealthCheck("/health")
@@ -87,8 +91,8 @@ var ordersApi = builder
     .WaitFor(catalogsApi)
     .WithReference(catalogsApi);
 
-var cartsApi = builder
-    .AddProject<Projects.Carts>(AspireApplicationResources.Api.CartsApi)
+IResourceBuilder<ProjectResource> cartsApi = builder
+    .AddProject<Carts>(AspireApplicationResources.Api.CartsApi)
     .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
     // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
     .WithHttpHealthCheck("/health")
@@ -101,8 +105,8 @@ var cartsApi = builder
     .WaitFor(catalogsApi)
     .WithReference(catalogsApi);
 
-var mcpServerApi = builder
-    .AddProject<Projects.McpServer>(AspireApplicationResources.Api.McpServerApi)
+IResourceBuilder<ProjectResource> mcpServerApi = builder
+    .AddProject<McpServer>(AspireApplicationResources.Api.McpServerApi)
     .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
     // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
     .WithHttpHealthCheck("/health")
@@ -113,8 +117,8 @@ var mcpServerApi = builder
     .WaitFor(catalogsApi)
     .WithReference(catalogsApi);
 
-var recommendationApi = builder
-    .AddProject<Projects.Recommendation>(AspireApplicationResources.Api.RecommendationApi)
+IResourceBuilder<ProjectResource> recommendationApi = builder
+    .AddProject<Recommendation>(AspireApplicationResources.Api.RecommendationApi)
     .WithReplicas(builder.ExecutionContext.IsRunMode ? 1 : 2)
     // this service will be healthy in aspire dashboard after this endpoint is available, default is `/`
     .WithHttpHealthCheck("/health")
@@ -128,5 +132,13 @@ var recommendationApi = builder
     .WithReference(reviewsApi)
     .WaitFor(mcpServerApi)
     .WithReference(mcpServerApi);
+
+// https://github.com/CommunityToolkit/Aspire/tree/main/src/CommunityToolkit.Aspire.Hosting.McpInspector
+// https://github.com/modelcontextprotocol/inspector
+// https://modelcontextprotocol.io/docs/tools/inspector
+builder
+    .AddMcpInspector(AspireResources.McpInspector, options => { })
+    .WithMcpServer(mcpServerApi)
+    .ExcludeFromManifest();
 
 await builder.Build().RunAsync();

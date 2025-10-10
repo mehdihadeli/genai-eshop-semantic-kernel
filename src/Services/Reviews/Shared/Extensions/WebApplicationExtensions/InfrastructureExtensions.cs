@@ -44,7 +44,7 @@ public static class InfrastructureExtensions
         // json-rpc endpoint
         app.MapA2A(hostAgent.TaskManager!, "/reviews").WithTags(GenAIEshop.Shared.Constants.Agents.ReviewsAgent);
         app.MapHttpA2A(hostAgent.TaskManager!, "/reviews").WithTags(GenAIEshop.Shared.Constants.Agents.ReviewsAgent);
-        app.MapWellKnownAgentCard(hostAgent.TaskManager!, agentPath: "/reviews");
+        app.MapCustomWellKnownAgentCard(hostAgent.TaskManager!, agentPath: "/reviews");
     }
 
     private static void MapHostSummarizeA2AAgent(this WebApplication app)
@@ -57,7 +57,7 @@ public static class InfrastructureExtensions
         app.MapA2A(hostAgent.TaskManager!, "/summarize").WithTags(GenAIEshop.Shared.Constants.Agents.SummarizeAgent);
         app.MapHttpA2A(hostAgent.TaskManager!, "/summarize")
             .WithTags(GenAIEshop.Shared.Constants.Agents.SummarizeAgent);
-        app.MapWellKnownAgentCard(hostAgent.TaskManager!, agentPath: "/summarize");
+        app.MapCustomWellKnownAgentCard(hostAgent.TaskManager!, agentPath: "/summarize");
     }
 
     private static void MapHostSentimentA2AAgent(this WebApplication app)
@@ -70,6 +70,6 @@ public static class InfrastructureExtensions
         app.MapA2A(hostAgent.TaskManager!, "/sentiment").WithTags(GenAIEshop.Shared.Constants.Agents.SentimentAgent);
         app.MapHttpA2A(hostAgent.TaskManager!, "/sentiment")
             .WithTags(GenAIEshop.Shared.Constants.Agents.SentimentAgent);
-        app.MapWellKnownAgentCard(hostAgent.TaskManager!, agentPath: "/sentiment");
+        app.MapCustomWellKnownAgentCard(hostAgent.TaskManager!, agentPath: "/sentiment");
     }
 }
