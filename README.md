@@ -18,6 +18,10 @@
 - ✅ Using `OpenTelemetry` for collecting `Logs`, `Metrics` and `Distributed Traces`
 - ✅ Using `.NET Aspire` for cloud-native application orchestration and enhanced developer experience
 
+## Architecture Diagram
+
+![](assets/genai-eshop.png)
+
 ## Getting Started
 
 ### Prerequisites
