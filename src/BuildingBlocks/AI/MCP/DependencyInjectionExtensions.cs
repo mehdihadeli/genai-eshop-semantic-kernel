@@ -1,5 +1,6 @@
 using System.Reflection;
 using Asp.Versioning;
+using BuildingBlocks.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -47,8 +48,11 @@ public static class DependencyInjectionExtensions
         var mcpServerBuilder = builder
             .Services.AddMcpServer(o =>
             {
-                Implementation info =
-                    new() { Name = name, Version = version?.ToString() ?? new ApiVersion(1, 0).ToString() };
+                Implementation info = new()
+                {
+                    Name = name,
+                    Version = version?.ToString() ?? new ApiVersion(1, 0).ToString(),
+                };
 
                 o.ServerInfo = info;
             })
@@ -100,39 +104,28 @@ public static class DependencyInjectionExtensions
             {
                 var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-                // it adds `ServiceEndpointResolver` in AddServiceDiscoveryCore when we register `http.AddServiceDiscovery()` for all httpclients using `ConfigureHttpClientDefaults`
-                // var resolver = sp.GetRequiredService<ServiceEndpointResolver>();
-                // https://github.com/dotnet/aspnetcore/issues/53715
-                var resolver = sp.GetRequiredService<ServiceEndpointResolver>();
-                var endpoints = resolver
-                    .GetEndpointsAsync(mcpServerHostUrl, CancellationToken.None)
-                    .GetAwaiter()
-                    .GetResult();
-
                 // because McpClient create its own HttpClient manually and don't use HttpClientFactory and our httpclient service discovery doesn't apply (through AddServiceDiscovery()), we should discover endpoint manually
-                var hostEndpoint = endpoints.Endpoints.FirstOrDefault()?.EndPoint.ToString();
+                var hostEndpoint = sp.GetEndpointAddress(mcpServerHostUrl);
                 ArgumentException.ThrowIfNullOrEmpty(hostEndpoint);
-                
+
                 var endpoint = new Uri(new Uri(hostEndpoint), relativePath);
 
-                McpClientOptions mcpClientOptions =
-                    new()
+                McpClientOptions mcpClientOptions = new()
+                {
+                    ClientInfo = new Implementation
                     {
-                        ClientInfo = new Implementation
-                        {
-                            Name = mcpClientName,
-                            Version = version?.ToString() ?? new ApiVersion(1, 0).ToString(),
-                        },
-                    };
+                        Name = mcpClientName,
+                        Version = version?.ToString() ?? new ApiVersion(1, 0).ToString(),
+                    },
+                };
 
                 // https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#streamable-http
-                HttpClientTransportOptions httpClientTransportOptions =
-                    new()
-                    {
-                        Name = $"{mcpClientName}HttpClientTransport",
-                        TransportMode = HttpTransportMode.StreamableHttp,
-                        Endpoint = endpoint,
-                    };
+                HttpClientTransportOptions httpClientTransportOptions = new()
+                {
+                    Name = $"{mcpClientName}HttpClientTransport",
+                    TransportMode = HttpTransportMode.StreamableHttp,
+                    Endpoint = endpoint,
+                };
 
                 HttpClientTransport httpClientTransport = new(httpClientTransportOptions, loggerFactory);
 
@@ -146,8 +139,8 @@ public static class DependencyInjectionExtensions
             }
         );
     }
-    
-     /// <summary>
+
+    /// <summary>
     /// Registers an MCP client that connects to a remote MCP server over HTTP(S) using Server-Sent Events (SSE).
     /// </summary>
     /// <param name="builder">The application builder used to access services and configuration.</param>
@@ -186,24 +179,22 @@ public static class DependencyInjectionExtensions
                 var endpoint = endpoints.Endpoints.FirstOrDefault()?.EndPoint.ToString();
                 ArgumentException.ThrowIfNullOrEmpty(endpoint);
 
-                McpClientOptions mcpClientOptions =
-                    new()
+                McpClientOptions mcpClientOptions = new()
+                {
+                    ClientInfo = new Implementation
                     {
-                        ClientInfo = new Implementation
-                        {
-                            Name = mcpClientName,
-                            Version = version?.ToString() ?? new ApiVersion(1, 0).ToString(),
-                        },
-                    };
+                        Name = mcpClientName,
+                        Version = version?.ToString() ?? new ApiVersion(1, 0).ToString(),
+                    },
+                };
 
                 // https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#streamable-http
-                HttpClientTransportOptions httpClientTransportOptions =
-                    new()
-                    {
-                        Name = $"{mcpClientName}SseClientTransport",
-                        TransportMode = HttpTransportMode.Sse,
-                        Endpoint = new Uri(endpoint),
-                    };
+                HttpClientTransportOptions httpClientTransportOptions = new()
+                {
+                    Name = $"{mcpClientName}SseClientTransport",
+                    TransportMode = HttpTransportMode.Sse,
+                    Endpoint = new Uri(endpoint),
+                };
 
                 HttpClientTransport sseTransport = new(httpClientTransportOptions, loggerFactory);
 
@@ -252,25 +243,23 @@ public static class DependencyInjectionExtensions
             {
                 var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
-                McpClientOptions mcpClientOptions =
-                    new()
+                McpClientOptions mcpClientOptions = new()
+                {
+                    ClientInfo = new Implementation
                     {
-                        ClientInfo = new Implementation
-                        {
-                            Name = mcpClientName,
-                            Version = version?.ToString() ?? new ApiVersion(1, 0).ToString(),
-                        },
-                    };
+                        Name = mcpClientName,
+                        Version = version?.ToString() ?? new ApiVersion(1, 0).ToString(),
+                    },
+                };
 
                 // https://modelcontextprotocol.io/specification/2025-06-18/basic/transports#stdio
-                StdioClientTransportOptions stdioOptions =
-                    new()
-                    {
-                        Name = $"{mcpClientName}StdioClient",
-                        Command = command,
-                        Arguments = arguments ?? [],
-                        WorkingDirectory = workingDirectory,
-                    };
+                StdioClientTransportOptions stdioOptions = new()
+                {
+                    Name = $"{mcpClientName}StdioClient",
+                    Command = command,
+                    Arguments = arguments ?? [],
+                    WorkingDirectory = workingDirectory,
+                };
 
                 // use JSON-RPC 2.0 over stdio
                 StdioClientTransport stdioTransport = new(stdioOptions, loggerFactory);
