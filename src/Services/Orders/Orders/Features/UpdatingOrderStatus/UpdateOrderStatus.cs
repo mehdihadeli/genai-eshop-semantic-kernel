@@ -2,6 +2,7 @@ using BuildingBlocks.Extensions;
 using GenAIEshop.Orders.Orders.Dtos;
 using GenAIEshop.Orders.Orders.Models;
 using GenAIEshop.Orders.Shared.Data;
+using Medallion.Threading;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,8 +20,11 @@ public sealed record UpdateOrderStatus(Guid OrderId, Guid UserId, OrderStatus Ne
     }
 }
 
-public sealed class UpdateOrderStatusHandler(OrdersDbContext dbContext, ILogger<UpdateOrderStatusHandler> logger)
-    : ICommandHandler<UpdateOrderStatus, UpdateOrderStatusResult>
+public sealed class UpdateOrderStatusHandler(
+    OrdersDbContext dbContext,
+    IDistributedLockProvider distributedLockProvider,
+    ILogger<UpdateOrderStatusHandler> logger
+) : ICommandHandler<UpdateOrderStatus, UpdateOrderStatusResult>
 {
     public async ValueTask<UpdateOrderStatusResult> Handle(
         UpdateOrderStatus command,
@@ -33,6 +37,16 @@ public sealed class UpdateOrderStatusHandler(OrdersDbContext dbContext, ILogger<
             command.NewStatus,
             command.UserId
         );
+
+        string lockKey = $"update:order:{command.OrderId}";
+        await using var lockHandle = await distributedLockProvider.TryAcquireLockAsync(
+            lockKey,
+            TimeSpan.FromSeconds(30),
+            cancellationToken
+        );
+
+        if (lockHandle == null)
+            throw new InvalidOperationException("Order is being modified by another process.");
 
         var order =
             await dbContext.Orders.FirstOrDefaultAsync(

@@ -3,6 +3,8 @@ using GenAIEshop.Orders.Orders.Dtos;
 using GenAIEshop.Orders.Orders.Models;
 using GenAIEshop.Orders.Shared.Contracts;
 using GenAIEshop.Orders.Shared.Data;
+using GenAIEshop.Orders.Shared.Dtos;
+using Medallion.Threading;
 using Mediator;
 
 namespace GenAIEshop.Orders.Orders.Features.CheckoutCart;
@@ -22,6 +24,7 @@ public sealed class CheckoutHandler(
     ICartsServiceClient cartsServiceClient,
     OrdersDbContext dbContext,
     ICatalogServiceClient catalogServiceClient,
+    IDistributedLockProvider distributedLockProvider,
     ILogger<CheckoutHandler> logger
 ) : ICommandHandler<CheckoutCarts, CheckoutResult>
 {
@@ -29,17 +32,26 @@ public sealed class CheckoutHandler(
     {
         logger.LogInformation("Starting checkout for user {UserId}", carts.UserId);
 
-        // 1. Get cart
-        var cart =
+        // Locking: Prevents multiple parallel register order (e.g., two users or retries trying to register an order at once)
+        // Acquire lock early to prevent unnecessary work
+        string lockKey = $"checkout:cart:{carts.UserId}";
+
+        await using IDistributedSynchronizationHandle? distributedLock =
+            await distributedLockProvider.TryAcquireLockAsync(lockKey, TimeSpan.FromSeconds(30), cancellationToken);
+
+        if (distributedLock == null)
+            throw new InvalidOperationException("Cart is already being prepared for checkout");
+
+        CartDto cart =
             await cartsServiceClient.GetCartAsync(carts.UserId, cancellationToken)
             ?? throw new InvalidOperationException("Cart not found or empty.");
 
         if (cart.Items.Count == 0)
             throw new InvalidOperationException("Cannot checkout empty cart.");
 
-        foreach (var item in cart.Items)
+        foreach (CartItemDto item in cart.Items)
         {
-            var product =
+            CatalogProductDto product =
                 await catalogServiceClient.GetProductByIdAsync(item.ProductId, cancellationToken)
                 ?? throw new InvalidOperationException($"Product {item.ProductId} not found in catalog.");
 
@@ -47,7 +59,7 @@ public sealed class CheckoutHandler(
                 throw new InvalidOperationException($"Product '{product.Name}' is currently unavailable.");
         }
 
-        var order = new Order
+        Order order = new()
         {
             Id = Guid.NewGuid(),
             UserId = carts.UserId,
