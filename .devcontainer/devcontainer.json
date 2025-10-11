@@ -5,7 +5,7 @@
 // https://dev.to/this-is-learning/set-up-github-codespaces-for-a-net-8-application-5999
 // https://audacioustux.notion.site/Getting-Started-with-Devcontainer-c727dbf9d56f4d6b9b0ef87b3111693f
 {
-  "name": "gen-ai-app-samples",
+  "name": "genai-eshop-semantic-kernel",
   // use existing dev container templates. More info: https://containers.dev/guide/dockerfile, https://containers.dev/templates
   //"image": "mcr.microsoft.com/devcontainers/dotnet:1-7.0",
   // use a Dockerfile file. More info: https://containers.dev/guide/dockerfile#dockerfile
@@ -27,9 +27,9 @@
     // https://github.com/devcontainers/features/tree/main/src/dotnet#dotnet-cli-dotnet
     "ghcr.io/devcontainers/features/dotnet:2": {
       // this version should be matched with global.json .net version for working vscode IntelliSense correctly
-      "version": "9.0.303",
-      "additionalVersions": "latest, 9.0.303",
-      "aspNetCoreRuntimeVersions": "latest, 9.0.3"
+      "version": "9.0.305",
+      "additionalVersions": "latest, 9.0.305",
+      "aspNetCoreRuntimeVersions": "latest, 9.0.9"
     },
     // https://github.com/Azure-Samples/aks-store-demo/blob/main/.devcontainer/devcontainer.json
     // "ghcr.io/azure/azure-dev/azd:latest": {},
