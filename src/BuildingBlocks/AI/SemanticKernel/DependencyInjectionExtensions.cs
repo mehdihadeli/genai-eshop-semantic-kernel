@@ -1,12 +1,10 @@
-using System.Data.Common;
 using A2A;
 using A2A.AspNetCore;
+using BuildingBlocks.AI.Extensions;
 using BuildingBlocks.Constants;
 using BuildingBlocks.Extensions;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.SemanticKernel;
 
 #pragma warning disable CS0618 // Type or member is obsolete
 #pragma warning disable SKEXP0010
@@ -31,28 +29,36 @@ public static class DependencyInjectionExtensions
 
     private static void AddSemanticChatCompletion(this IHostApplicationBuilder builder, SemanticKernelOptions options)
     {
+        if (string.IsNullOrEmpty(options.EmbeddingEndpoint) && string.IsNullOrEmpty(options.EmbeddingModel))
+            throw new ArgumentException("Embedding endpoint or model is not configured.");
+
         switch (options.ChatProviderType)
         {
             case ProviderType.Ollama:
                 // https://learn.microsoft.com/en-us/dotnet/aspire/community-toolkit/ollama?tabs=dotnet-cli%2Cdocker#client-integration
                 // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/chat-completion/?tabs=csharp-Ollama%2Cpython-AzureOpenAI%2Cjava-AzureOpenAI&pivots=programming-language-csharp
-                CheckAspireChatModelOption(builder, options);
-
-                ArgumentException.ThrowIfNullOrEmpty(options.ChatEndpoint);
-                ArgumentException.ThrowIfNullOrEmpty(options.ChatModel);
-
-                // https://devblogs.microsoft.com/semantic-kernel/introducing-new-ollama-connector-for-local-models/
-                // Register `IChatCompletionService` which is dedicated to semantic kernel.
-                builder.Services.AddOllamaChatCompletion(
-                    modelId: options.ChatModel,
-                    endpoint: new Uri(options.ChatEndpoint)
+                // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/ollama/OllamaExamples/DependencyInjection.cs
+                // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/ollama/OllamaExamples/ToolCalling.cs
+                var ollamaApiClientBuilder = builder.AddOllamaApiClient(
+                    AspireResources.OllamaChat,
+                    settings =>
+                    {
+                        settings.SelectedModel = options.ChatModel;
+                        settings.Endpoint = new Uri(options.ChatEndpoint);
+                        settings.DisableTracing = false;
+                    }
                 );
 
                 // https://learn.microsoft.com/en-us/dotnet/ai/dotnet-ai-ecosystem#semantic-kernel-for-net
                 // Register `IChatClient` which is based on `Microsoft.Extensions.AI` abstractions and implemented by semantic kernel connectors. To use the same client abstractions across different AI frameworks.
-                builder.Services.AddOllamaChatClient(
-                    modelId: options.ChatModel,
-                    endpoint: new Uri(options.ChatEndpoint)
+                ollamaApiClientBuilder.AddOllamaChatClient(configureOpenTelemetry: otel =>
+                    otel.EnableSensitiveData = builder.Environment.IsDevelopment()
+                );
+
+                // https://devblogs.microsoft.com/semantic-kernel/introducing-new-ollama-connector-for-local-models/
+                // Register `IChatCompletionService` which is dedicated to semantic kernel.
+                ollamaApiClientBuilder.AddOllamaChatCompletion(configureOpenTelemetry: otel =>
+                    otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
 
                 break;
@@ -61,44 +67,55 @@ public static class DependencyInjectionExtensions
                 ArgumentException.ThrowIfNullOrEmpty(options.ChatDeploymentName);
                 ArgumentException.ThrowIfNullOrEmpty(options.ChatApiKey);
 
-                builder.Services.AddAzureOpenAIChatCompletion(
+                var azureOpenAIApiClientBuilder = builder.AddAzureOpenAIClient(
+                    new AzureOpenAIApiClientSettings
+                    {
+                        ApiKey = options.ChatApiKey,
+                        Endpoint = options.ChatEndpoint,
+                        DisableTracing = false,
+                    }
+                );
+
+                azureOpenAIApiClientBuilder.AddAzureOpenAIChatCompletion(
                     deploymentName: options.ChatDeploymentName,
-                    // The Azure OpenAI resource endpoint to use. This should not include model deployment or operation information. For example: https://my-resource.openai.azure.com.
-                    endpoint: options.ChatEndpoint,
-                    apiKey: options.ChatApiKey,
-                    modelId: options.ChatModel
+                    model: options.ChatModel,
+                    configureOpenTelemetry: otel => otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
 
                 // https://learn.microsoft.com/en-us/dotnet/ai/dotnet-ai-ecosystem#semantic-kernel-for-net
                 // Register `IChatClient` which is based on `Microsoft.Extensions.AI` abstractions and implemented by semantic kernel connectors. To use the same client abstractions across different AI frameworks.
-                builder.Services.AddAzureOpenAIChatClient(
+                azureOpenAIApiClientBuilder.AddAzureOpenAIChatClient(
                     deploymentName: options.ChatDeploymentName,
-                    // The Azure OpenAI resource endpoint to use. This should not include model deployment or operation information. For example: https://my-resource.openai.azure.com.
-                    endpoint: options.ChatEndpoint,
-                    apiKey: options.ChatApiKey,
-                    modelId: options.ChatModel
+                    model: options.ChatModel,
+                    configureOpenTelemetry: otel => otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
+
                 break;
             case ProviderType.OpenAI:
                 // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/chat-completion/?tabs=csharp-OpenAI%2Cpython-AzureOpenAI%2Cjava-AzureOpenAI&pivots=programming-language-csharp
                 ArgumentException.ThrowIfNullOrEmpty(options.ChatApiKey);
 
-                // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
-                // supports both `openai` and `openrouter` endpoints
-                string openaiEndpoint = options.ChatEndpoint ?? "https://api.openai.com/v1";
+                var openAiApiClientBuilder = builder.AddOpenAIClient(
+                    new OpenAIApiClientSettings
+                    {
+                        ApiKey = options.ChatApiKey,
+                        Endpoint = options.ChatEndpoint,
+                        DisableTracing = false,
+                    }
+                );
 
-                builder.Services.AddOpenAIChatCompletion(
-                    modelId: options.ChatModel,
-                    endpoint: new Uri(openaiEndpoint),
-                    apiKey: options.ChatApiKey
+                openAiApiClientBuilder.AddOpenAIChatCompletion(
+                    deploymentName: options.ChatDeploymentName,
+                    model: options.ChatModel,
+                    configureOpenTelemetry: otel => otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
 
                 // https://learn.microsoft.com/en-us/dotnet/ai/dotnet-ai-ecosystem#semantic-kernel-for-net
                 // Register `IChatClient` which is based on `Microsoft.Extensions.AI` abstractions and implemented by semantic kernel connectors. To use the same client abstractions across different AI frameworks.
-                builder.Services.AddOpenAIChatClient(
-                    modelId: options.ChatModel,
-                    endpoint: new Uri(openaiEndpoint),
-                    apiKey: options.ChatApiKey
+                openAiApiClientBuilder.AddOpenAIChatClient(
+                    deploymentName: options.ChatDeploymentName,
+                    model: options.ChatModel,
+                    configureOpenTelemetry: otel => otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
 
                 break;
@@ -117,23 +134,27 @@ public static class DependencyInjectionExtensions
         {
             case ProviderType.Ollama:
                 // https://learn.microsoft.com/en-us/dotnet/aspire/community-toolkit/ollama?tabs=dotnet-cli%2Cdocker#client-integration
-                // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/embedding-generation/?tabs=csharp-Ollama&pivots=programming-language-csharp
-                CheckAspireEmbeddingModelOption(builder, options);
-
-                if (string.IsNullOrEmpty(options.EmbeddingEndpoint) || string.IsNullOrEmpty(options.EmbeddingModel))
-                    return;
+                // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/chat-completion/?tabs=csharp-Ollama%2Cpython-AzureOpenAI%2Cjava-AzureOpenAI&pivots=programming-language-csharp
+                // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/ollama/OllamaExamples/DependencyInjection.cs
+                // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/ollama/OllamaExamples/ToolCalling.cs
+                var ollamaApiClientBuilder = builder.AddOllamaApiClient(
+                    AspireResources.OllamaEmbedding,
+                    settings =>
+                    {
+                        settings.SelectedModel = options.EmbeddingModel;
+                        settings.Endpoint = new Uri(options.EmbeddingEndpoint);
+                    }
+                );
 
                 // https://devblogs.microsoft.com/semantic-kernel/introducing-new-ollama-connector-for-local-models/
                 // Register `IEmbeddingGenerator<string, Embedding<float>>` which is based on `Microsoft.Extensions.AI` abstractions and implemented by semantic kernel connectors. To use the same client abstractions across different AI frameworks.
-                builder.Services.AddOllamaEmbeddingGenerator(
-                    modelId: options.EmbeddingModel,
-                    endpoint: new Uri(options.EmbeddingEndpoint)
+                ollamaApiClientBuilder.AddOllamaEmbeddingGenerator(configureOpenTelemetry: otel =>
+                    otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
 
-                // Register `ITextEmbeddingGenerationService` which is dedicated to semantic kernel
-                builder.Services.AddOllamaTextEmbeddingGeneration(
-                    modelId: options.EmbeddingModel,
-                    endpoint: new Uri(options.EmbeddingEndpoint)
+                // Register `IEmbeddingGenerationService` which is dedicated to semantic kernel
+                ollamaApiClientBuilder.AddOllamaEmbeddingGeneration(configureOpenTelemetry: otel =>
+                    otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
                 break;
             case ProviderType.Azure:
@@ -141,38 +162,56 @@ public static class DependencyInjectionExtensions
                 ArgumentException.ThrowIfNullOrEmpty(options.EmbeddingApiKey);
                 ArgumentException.ThrowIfNullOrEmpty(options.EmbeddingDeploymentName);
 
+                var azureOpenAiApiClientBuilder = builder.AddAzureOpenAIClient(
+                    new AzureOpenAIApiClientSettings
+                    {
+                        ApiKey = options.ChatApiKey,
+                        Endpoint = options.ChatEndpoint,
+                        DisableTracing = false,
+                    }
+                );
+
                 // https://devblogs.microsoft.com/semantic-kernel/introducing-new-ollama-connector-for-local-models/
                 // Register `IEmbeddingGenerator<string, Embedding<float>>` which is based on `Microsoft.Extensions.AI` abstractions and implemented by semantic kernel connectors. To use the same client abstractions across different AI frameworks.
-                builder.Services.AddAzureOpenAIEmbeddingGenerator(
+                azureOpenAiApiClientBuilder.AddAzureOpenAIEmbeddingGenerator(
                     deploymentName: options.EmbeddingDeploymentName,
-                    endpoint: options.EmbeddingEndpoint,
-                    modelId: options.EmbeddingModel,
-                    apiKey: options.ChatApiKey
+                    model: options.EmbeddingModel,
+                    configureOpenTelemetry: otel => otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
 
                 // Register `ITextEmbeddingGenerationService` which is dedicated to semantic kernel
-                builder.Services.AddAzureOpenAITextEmbeddingGeneration(
+                azureOpenAiApiClientBuilder.AddAzureOpenAIEmbeddingGeneration(
                     deploymentName: options.EmbeddingDeploymentName,
-                    endpoint: options.EmbeddingEndpoint,
-                    modelId: options.EmbeddingModel,
-                    apiKey: options.ChatApiKey
+                    model: options.EmbeddingModel,
+                    configureOpenTelemetry: otel => otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
                 break;
             case ProviderType.OpenAI:
                 // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/embedding-generation/?tabs=csharp-OpenAI&pivots=programming-language-csharp
                 ArgumentException.ThrowIfNullOrEmpty(options.EmbeddingApiKey);
 
+                var openAiApiClientBuilder = builder.AddOpenAIClient(
+                    new OpenAIApiClientSettings
+                    {
+                        ApiKey = options.ChatApiKey,
+                        Endpoint = options.ChatEndpoint,
+                        DisableTracing = false,
+                    }
+                );
+
                 // https://devblogs.microsoft.com/semantic-kernel/introducing-new-ollama-connector-for-local-models/
                 // Register `IEmbeddingGenerator<string, Embedding<float>>` which is based on `Microsoft.Extensions.AI` abstractions and implemented by semantic kernel connectors. To use the same client abstractions across different AI frameworks.
-                builder.Services.AddOpenAIEmbeddingGenerator(
-                    modelId: options.EmbeddingModel,
-                    apiKey: options.EmbeddingApiKey
+                openAiApiClientBuilder.AddOpenAIEmbeddingGenerator(
+                    deploymentName: options.EmbeddingDeploymentName,
+                    model: options.EmbeddingModel,
+                    configureOpenTelemetry: otel => otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
 
                 // Register `ITextEmbeddingGenerationService` which is dedicated to semantic kernel
-                builder.Services.AddOpenAITextEmbeddingGeneration(
-                    modelId: options.EmbeddingModel,
-                    apiKey: options.EmbeddingApiKey
+                openAiApiClientBuilder.AddOpenAIEmbeddingGeneration(
+                    deploymentName: options.EmbeddingDeploymentName,
+                    model: options.EmbeddingModel,
+                    configureOpenTelemetry: otel => otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
                 break;
         }
@@ -202,43 +241,5 @@ public static class DependencyInjectionExtensions
             .WithTracing(tracing =>
                 tracing.AddSource(TaskManager.ActivitySource.Name).AddSource(A2AJsonRpcProcessor.ActivitySource.Name)
             );
-    }
-
-    private static void CheckAspireEmbeddingModelOption(IHostApplicationBuilder builder, SemanticKernelOptions options)
-    {
-        if (builder.Configuration.GetConnectionString(AspireResources.OllamaEmbedding) is { } connectionString)
-        {
-            var connectionBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
-            if (connectionBuilder.ContainsKey("Endpoint"))
-            {
-                options.EmbeddingEndpoint = connectionBuilder["Endpoint"].ToString();
-            }
-
-            if (connectionBuilder.ContainsKey("Model"))
-            {
-                options.EmbeddingModel = (string)connectionBuilder["Model"];
-            }
-        }
-    }
-
-    private static void CheckAspireChatModelOption(IHostApplicationBuilder builder, SemanticKernelOptions options)
-    {
-        if (builder.Configuration.GetConnectionString(AspireResources.OllamaChat) is { } connectionString)
-        {
-            var connectionBuilder = new DbConnectionStringBuilder { ConnectionString = connectionString };
-
-            if (connectionBuilder.ContainsKey("Endpoint"))
-            {
-                // override existing chat endpoint with aspire connection string
-                options.ChatEndpoint = connectionBuilder["Endpoint"].ToString();
-            }
-
-            if (connectionBuilder.ContainsKey("Model"))
-            {
-                // override the existing chat model with aspire connection string
-                options.ChatModel = (string)connectionBuilder["Model"];
-            }
-        }
     }
 }
