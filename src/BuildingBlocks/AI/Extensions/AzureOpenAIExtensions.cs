@@ -10,9 +10,11 @@ using Microsoft.SemanticKernel.Embeddings;
 
 namespace BuildingBlocks.AI.Extensions;
 
-// https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/azure-openai/AzureOpenAIExamples/OpenTelemetry.cs
 // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/azure-openai/AzureOpenAIExamples/DependencyInjection.cs
 // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/azure-openai/AzureOpenAIExamples/Middleware.cs
+// https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/azure-openai/AzureOpenAIExamples/ToolCalling.cs
+// https://learn.microsoft.com/en-us/dotnet/ai/dotnet-ai-ecosystem
+// https://github.com/microsoft/agent-framework/tree/main/dotnet/samples/SemanticKernelMigration
 public static class AzureOpenAIExtensions
 {
     private static readonly string DefaultSemanticKernelSourceName = "Microsoft.SemanticKernel.Experimental";
@@ -76,6 +78,7 @@ public static class AzureOpenAIExtensions
                 chatClientBuilder.UseDistributedCache();
             }
 
+            // using `UseKernelFunctionInvocation` because we want to use semantic kernel features for function calls for both ChatCompletion and ChatClient that use in AgentChatCompletion by selectors
             chatClientBuilder = chatClientBuilder.UseLogging().UseKernelFunctionInvocation();
             chatClient = chatClientBuilder.Build(sp);
 
@@ -195,6 +198,7 @@ public static class AzureOpenAIExtensions
             chatClientBuilder.UseDistributedCache();
         }
 
+        // using `UseKernelFunctionInvocation` because we want to use semantic kernel features for function calls for both ChatCompletion and ChatClient that use in AgentChatCompletion by selectors
         chatClientBuilder = chatClientBuilder.UseLogging().UseKernelFunctionInvocation();
 
         chatClientBuilderConfigs?.Invoke(chatClientBuilder);

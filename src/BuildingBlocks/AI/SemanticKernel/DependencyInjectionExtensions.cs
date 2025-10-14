@@ -29,16 +29,23 @@ public static class DependencyInjectionExtensions
 
     private static void AddSemanticChatCompletion(this IHostApplicationBuilder builder, SemanticKernelOptions options)
     {
-        if (string.IsNullOrEmpty(options.EmbeddingEndpoint) && string.IsNullOrEmpty(options.EmbeddingModel))
-            throw new ArgumentException("Embedding endpoint or model is not configured.");
+        if (string.IsNullOrEmpty(options.ChatEndpoint) && string.IsNullOrEmpty(options.ChatModel))
+            throw new ArgumentException("Chat endpoint or model is not configured.");
+
+        // - In `ChatCompletionAgent`, during `GetChatCompletionService`, it first tries to find a registered `IChatCompletionService` and `PromptExecutionSettings`.
+        // If not found, it then looks for a registered `IChatClient`, and after resolving it, attempts to convert it to a `ChatCompletionService` using `AsChatCompletionService`.
+        // Finally, it returns an `IChatCompletionService` and calls `GetChatMessageContentsAsync` on the `ChatCompletionService` within `ChatCompletionAgent`.
+
+        // - In `PromptExecutionSettingsExtensions.ToChatOptions`, during the conversion from `PromptExecutionSettings` to `ChatOptions`, if a `FunctionChoiceBehavior` is not provided, the Semantic Kernel does not automatically discover all tools in the kernel or add them to `ChatOptions.Tools`.
+        // Based on the `AutoFunctionChoiceBehavior` type, it sets `ChatOptions.ToolMode` to either `ChatToolMode.Auto` or `ChatToolMode.RequireAny`.
+        // (When using `FunctionChoiceBehavior.Required(functions)`, you should explicitly pass the required functions.)
+        // When using a `ChatCompletionAgent`, you can pass `PromptExecutionSettings`, which will also be used if an `IChatClient` is registered and applied as its `ChatOptions`.
+        // However, when using `IChatClient` directly in normal mode, it only accepts `ChatOptions` and does not support `AutoFunctionChoiceBehavior`.
+        // Therefore, you must explicitly add all the required tools, and based on the provided tools, you can set `ChatOptions.ToolMode` to either `ChatToolMode.Auto` or `ChatToolMode.RequireAny` to select the appropriate function automatically.
 
         switch (options.ChatProviderType)
         {
             case ProviderType.Ollama:
-                // https://learn.microsoft.com/en-us/dotnet/aspire/community-toolkit/ollama?tabs=dotnet-cli%2Cdocker#client-integration
-                // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/chat-completion/?tabs=csharp-Ollama%2Cpython-AzureOpenAI%2Cjava-AzureOpenAI&pivots=programming-language-csharp
-                // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/ollama/OllamaExamples/DependencyInjection.cs
-                // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/ollama/OllamaExamples/ToolCalling.cs
                 var ollamaApiClientBuilder = builder.AddOllamaApiClient(
                     AspireResources.OllamaChat,
                     settings =>
@@ -133,10 +140,6 @@ public static class DependencyInjectionExtensions
         switch (options.EmbeddingProviderType)
         {
             case ProviderType.Ollama:
-                // https://learn.microsoft.com/en-us/dotnet/aspire/community-toolkit/ollama?tabs=dotnet-cli%2Cdocker#client-integration
-                // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/chat-completion/?tabs=csharp-Ollama%2Cpython-AzureOpenAI%2Cjava-AzureOpenAI&pivots=programming-language-csharp
-                // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/ollama/OllamaExamples/DependencyInjection.cs
-                // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/ollama/OllamaExamples/ToolCalling.cs
                 var ollamaApiClientBuilder = builder.AddOllamaApiClient(
                     AspireResources.OllamaEmbedding,
                     settings =>
@@ -156,6 +159,7 @@ public static class DependencyInjectionExtensions
                 ollamaApiClientBuilder.AddOllamaEmbeddingGeneration(configureOpenTelemetry: otel =>
                     otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
+
                 break;
             case ProviderType.Azure:
                 // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/embedding-generation/?tabs=csharp-AzureOpenAI&pivots=programming-language-csharp
@@ -185,6 +189,7 @@ public static class DependencyInjectionExtensions
                     model: options.EmbeddingModel,
                     configureOpenTelemetry: otel => otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
+
                 break;
             case ProviderType.OpenAI:
                 // https://learn.microsoft.com/en-us/semantic-kernel/concepts/ai-services/embedding-generation/?tabs=csharp-OpenAI&pivots=programming-language-csharp
@@ -213,6 +218,7 @@ public static class DependencyInjectionExtensions
                     model: options.EmbeddingModel,
                     configureOpenTelemetry: otel => otel.EnableSensitiveData = builder.Environment.IsDevelopment()
                 );
+
                 break;
         }
     }

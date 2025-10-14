@@ -10,6 +10,9 @@ namespace BuildingBlocks.AI.Extensions;
 
 // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/ollama/OllamaExamples/DependencyInjection.cs
 // https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/ollama/OllamaExamples/Middleware.cs
+// https://github.com/dotnet/ai-samples/blob/main/src/microsoft-extensions-ai/ollama/OllamaExamples/ToolCalling.cs
+// https://learn.microsoft.com/en-us/dotnet/ai/dotnet-ai-ecosystem
+// https://github.com/microsoft/agent-framework/tree/main/dotnet/samples/SemanticKernelMigration
 public static class OllamaExtensions
 {
     private static readonly string DefaultSemanticKernelSourceName = "Microsoft.SemanticKernel.Experimental";
@@ -77,6 +80,7 @@ public static class OllamaExtensions
                 chatClientBuilder.UseDistributedCache();
             }
 
+            // using `UseKernelFunctionInvocation` because we want to use semantic kernel features for function calls for both ChatCompletion and ChatClient that use in AgentChatCompletion by selectors
             chatClientBuilder = chatClientBuilder.UseLogging().UseKernelFunctionInvocation();
             chatClient = chatClientBuilder.Build(sp);
 

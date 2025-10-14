@@ -84,6 +84,8 @@ IResourceBuilder<ProjectResource> ordersApi = builder
     .WithHttpHealthCheck("/health")
     .WithReference(ordersPostgres)
     .WaitFor(ordersPostgres)
+    .WithReference(redis)
+    .WaitFor(redis)
     // .WithReference(ollamaChat)
     // .WaitFor(ollamaChat)
     // .WithReference(ollamaEmbedding)

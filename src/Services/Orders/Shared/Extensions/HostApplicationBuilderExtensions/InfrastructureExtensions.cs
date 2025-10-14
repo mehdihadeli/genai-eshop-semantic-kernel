@@ -1,3 +1,5 @@
+using BuildingBlocks.Cache;
+using BuildingBlocks.Constants;
 using BuildingBlocks.OpenApi;
 using BuildingBlocks.ProblemDetails;
 using BuildingBlocks.Serialization;
@@ -19,6 +21,8 @@ public static class HostApplicationBuilderExtensions
 
         builder.AddVersioning();
         builder.AddAspnetOpenApi(["v1"]);
+
+        builder.AddCustomCaching(redisConnectionStringName: AspireResources.Redis);
 
         // https://github.com/martinothamar/Mediator
         builder.Services.AddMediator(options =>
