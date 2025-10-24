@@ -1,9 +1,7 @@
-# GenAI-Eshop-Semantic-Kernel
-
 > 💡 Practical `GenAI-Eshop` application using [Semantic Kernel](https://github.com/microsoft/semantic-kernel), `multi-agent orchestrations`, `Mcp tools`, `A2A Agents`, `Semantic Search` and more.
 
 > [!NOTE]
-> We will migrate this `GenAI-Eshop` application to the [microsoft/agent-framework](https://github.com/microsoft/agent-framework) instead of [Semantic Kernel](https://github.com/microsoft/semantic-kernel) in a [sepereated repository](https://github.com/mehdihadeli/genai-eshop). You can check their differences in a practical application here.
+> We migrated the `GenAI-Eshop` application to use the [microsoft/agent-framework](https://github.com/microsoft/agent-framework) instead of [Semantic Kernel](https://github.com/microsoft/semantic-kernel) in the [mehdihadeli/genai-eshop](https://github.com/mehdihadeli/genai-eshop) repository. You can check their differences in a practical application there.
 
 > [!NOTE]
 > 🎥 See my talk at [**JetBrains .NET Day 2025**](https://lp.jetbrains.com/dotnet-days-2025/), where I **explain Generative AI** and demonstrate this practical example.
@@ -12,11 +10,12 @@
 
 ## Features
 
-- ✅ Using `Qdrant` Semantic Kernel Connector for storing vector data for doing `Semantic Meaning Search` and `Hybrid Search` using vector data and semantic kernel
+- ✅ Using [microsoft/semantic-kernel](https://github.com/microsoft/semantic-kernel) for multi-agent orchestrations and AI related services
+- ✅ Using `Qdrant Semantic Kernel Connector` for storing vector data for doing `Semantic Meaning Search` and `Hybrid Search` using vector data and semantic kernel
 - ✅ Using Semantic Kernel `EmbeddingGenerator` based on chosen providers like `Ollama`, `AzureOpenAI`, and `OpenAI` for generating vector data for semantic search
 - ✅ Using Semantic Kernel `ChatCompletion` based on chosen providers like `Ollama`, `AzureOpenAI`, and `OpenAI` for communicating with different models for generating responses
 - ✅ Using `Mcp tools` based on `http` and json-rpc for calling endpoints in our Mcp server and calling third party tools by LLMs for Fine-grained functions
-- ✅ Using `Multi-Agent Orchestrations` for `local` and `external` agents communication using agents `parent child agent relationships` and different Semantic Kernel’s `Agent Orchestration Patterns` like GroupChat and Sequential orchestration
+- ✅ Using `Multi-Agent Orchestrations` for `local` and `external` agents communication using agents `parent child agent relationships` and different Semantic Kernel’s `Agent Orchestration Patterns` like `Parent-Child`, `GroupChat` and `Sequential` orchestration
 - ✅ Using `Agent2Agent Protocol (A2A)` protocol based on http and json-rpc for calling and using external agents
 - ✅ Using `Vertical Slice Architecture` as a high-level architecture
 - ✅ Using `Minimal APIs` for handling requests
