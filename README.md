@@ -5,6 +5,11 @@
 > [!NOTE]
 > We will migrate this `GenAI-Eshop` application to the [microsoft/agent-framework](https://github.com/microsoft/agent-framework) instead of [Semantic Kernel](https://github.com/microsoft/semantic-kernel) in a [sepereated repository](https://github.com/mehdihadeli/genai-eshop). You can check their differences in a practical application here.
 
+> [!NOTE]
+> 🎥 See my talk at [**JetBrains .NET Day 2025**](https://lp.jetbrains.com/dotnet-days-2025/), where I **explain Generative AI** and demonstrate this practical example.
+
+[![Building Scalable GenAI Apps Using Semantic Kernel and .NET Aspire](https://img.youtube.com/vi/Rb9a2hNFNbQ/maxresdefault.jpg)](https://www.youtube.com/watch?v=Rb9a2hNFNbQ)
+
 ## Features
 
 - ✅ Using `Qdrant` Semantic Kernel Connector for storing vector data for doing `Semantic Meaning Search` and `Hybrid Search` using vector data and semantic kernel
