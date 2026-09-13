@@ -7,20 +7,175 @@ on:
     branches: ["main"]
 
 jobs:
-  build-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup .NET 9
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 9.0.x
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore
 
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+  unit-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - tests/BuildingBlocks/BuildingBlocks.Tests/BuildingBlocks.Tests.csproj
+          - tests/Mcp/McpServer/GenAIEshop.McpServer.UnitTests/GenAIEshop.McpServer.UnitTests.csproj
+          - tests/Services/Catalogs/GenAIEshop.Catalogs.UnitTests/GenAIEshop.Catalogs.UnitTests.csproj
+          - tests/Services/Carts/GenAIEshop.Carts.UnitTests/GenAIEshop.Carts.UnitTests.csproj
+          - tests/Services/Orders/GenAIEshop.Orders.UnitTests/GenAIEshop.Orders.UnitTests.csproj
+          - tests/Services/Recommendation/GenAIEshop.Recommendation.UnitTests/GenAIEshop.Recommendation.UnitTests.csproj
+          - tests/Services/Reviews/GenAIEshop.Reviews.UnitTests/GenAIEshop.Reviews.UnitTests.csproj
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Run unit tests
+        run: dotnet test --project "${{ matrix.project }}" --configuration Release
+
+  integration-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - tests/Mcp/McpServer/GenAIEshop.McpServer.IntegrationTests/GenAIEshop.McpServer.IntegrationTests.csproj
+          - tests/Services/Catalogs/GenAIEshop.Catalogs.IntegrationTests/GenAIEshop.Catalogs.IntegrationTests.csproj
+          - tests/Services/Carts/GenAIEshop.Carts.IntegrationTests/GenAIEshop.Carts.IntegrationTests.csproj
+          - tests/Services/Orders/GenAIEshop.Orders.IntegrationTests/GenAIEshop.Orders.IntegrationTests.csproj
+          - tests/Services/Recommendation/GenAIEshop.Recommendation.IntegrationTests/GenAIEshop.Recommendation.IntegrationTests.csproj
+          - tests/Services/Reviews/GenAIEshop.Reviews.IntegrationTests/GenAIEshop.Reviews.IntegrationTests.csproj
+
+    env:
+      GENAI_RUN_EXTERNAL_TESTS: true
+      GENAI_SKIP_VECTOR_SEEDING: true
+      GENAI_TEST_CATALOGS_BASE_URL: http://localhost:5000
+      GENAI_TEST_CARTS_BASE_URL: http://localhost:4000
+      GENAI_TEST_ORDERS_BASE_URL: http://localhost:7000
+      GENAI_TEST_RECOMMENDATION_BASE_URL: http://localhost:2000
+      GENAI_TEST_REVIEWS_BASE_URL: http://localhost:8000
+      GENAI_TEST_MCP_BASE_URL: http://localhost:9000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Aspire CLI
+        run: |
+          dotnet tool install --global Aspire.Cli
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Start Aspire
+        run: bash scripts/start-aspire-for-tests.sh
+
+      - name: Run integration tests
+        run: dotnet test --project "${{ matrix.project }}" --configuration Release
+
+      - name: Stop Aspire
+        if: always()
+        run: bash scripts/stop-aspire-for-tests.sh
+
+  e2e-tests:
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - tests/Services/Catalogs/GenAIEshop.Catalogs.EndToEndTests/GenAIEshop.Catalogs.EndToEndTests.csproj
+          - tests/Services/Carts/GenAIEshop.Carts.EndToEndTests/GenAIEshop.Carts.EndToEndTests.csproj
+          - tests/Services/Orders/GenAIEshop.Orders.EndToEndTests/GenAIEshop.Orders.EndToEndTests.csproj
+          - tests/Services/Recommendation/GenAIEshop.Recommendation.EndToEndTests/GenAIEshop.Recommendation.EndToEndTests.csproj
+          - tests/Services/Reviews/GenAIEshop.Reviews.EndToEndTests/GenAIEshop.Reviews.EndToEndTests.csproj
+
+    env:
+      GENAI_RUN_EXTERNAL_TESTS: true
+      GENAI_SKIP_VECTOR_SEEDING: true
+      GENAI_TEST_CATALOGS_BASE_URL: http://localhost:5000
+      GENAI_TEST_CARTS_BASE_URL: http://localhost:4000
+      GENAI_TEST_ORDERS_BASE_URL: http://localhost:7000
+      GENAI_TEST_RECOMMENDATION_BASE_URL: http://localhost:2000
+      GENAI_TEST_REVIEWS_BASE_URL: http://localhost:8000
+      GENAI_TEST_MCP_BASE_URL: http://localhost:9000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Aspire CLI
+        run: |
+          dotnet tool install --global Aspire.Cli
+          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Start Aspire
+        run: bash scripts/start-aspire-for-tests.sh
+
+      - name: Run end-to-end tests
+        run: dotnet test --project "${{ matrix.project }}" --configuration Release
+
+      - name: Stop Aspire
+        if: always()
+        run: bash scripts/stop-aspire-for-tests.sh
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install Aspire CLI
+        run: dotnet tool install -g Aspire.Cli
+
+      - name: Add .NET tools to PATH
+        run: echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Start Aspire for integration tests
+        env:
+          GENAI_SKIP_VECTOR_SEEDING: true
+        run: bash scripts/start-aspire-for-tests.sh
+
+      - name: Run integration and end-to-end tests
+        env:
+          GENAI_RUN_EXTERNAL_TESTS: true
+          GENAI_SKIP_VECTOR_SEEDING: true
+        run: |
+          find tests -type f \( -name '*IntegrationTests.csproj' -o -name '*EndToEndTests.csproj' \) -print0 |
+            while IFS= read -r -d '' project; do
+              dotnet test --project "$project" --configuration Release --no-build
+            done
+
+      - name: Stop Aspire
+        if: always()
+        run: bash scripts/stop-aspire-for-tests.sh

@@ -1,5 +1,6 @@
 using BuildingBlocks.Cache;
 using BuildingBlocks.Constants;
+using BuildingBlocks.Env;
 using BuildingBlocks.OpenApi;
 using BuildingBlocks.ProblemDetails;
 using BuildingBlocks.Serialization;
@@ -11,6 +12,9 @@ public static class HostApplicationBuilderExtensions
 {
     public static IHostApplicationBuilder AddInfrastructure(this IHostApplicationBuilder builder)
     {
+        DotEnv.Load();
+        builder.Configuration.AddEnvironmentVariables();
+
         builder.AddCustomProblemDetails();
 
         // Apply to other places rather than controller response like openapi document generation, and customizes the default JSON serialization behavior for Minimal APIs

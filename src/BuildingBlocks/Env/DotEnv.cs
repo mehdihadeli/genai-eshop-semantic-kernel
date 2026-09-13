@@ -9,14 +9,23 @@ public static class DotEnv
         if (!File.Exists(filePath))
             return;
 
-        foreach (var line in File.ReadAllLines(filePath))
+        foreach (var rawLine in File.ReadAllLines(filePath))
         {
-            var parts = line.Split('=', StringSplitOptions.RemoveEmptyEntries);
-
-            if (parts.Length != 2)
+            var line = rawLine.Trim();
+            if (line.Length == 0 || line.StartsWith('#'))
                 continue;
 
-            Environment.SetEnvironmentVariable(parts[0], parts[1]);
+            var separatorIndex = line.IndexOf('=', StringComparison.Ordinal);
+            if (separatorIndex <= 0)
+                continue;
+
+            var key = line[..separatorIndex].Trim();
+            var value = line[(separatorIndex + 1)..].Trim();
+
+            if (value.Length >= 2 && value[0] == value[^1] && (value[0] == '"' || value[0] == '\''))
+                value = value[1..^1];
+
+            Environment.SetEnvironmentVariable(key, value);
         }
     }
 }
