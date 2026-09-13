@@ -13,6 +13,9 @@ namespace BuildingBlocks.AI.SemanticKernel;
 
 public static class DependencyInjectionExtensions
 {
+    private const string ChatClientServiceKey = "SemanticKernel.Chat";
+    private const string EmbeddingClientServiceKey = "SemanticKernel.Embedding";
+
     public static IHostApplicationBuilder AddSemanticKernel(this IHostApplicationBuilder builder)
     {
         var options = builder.Configuration.BindOptions<SemanticKernelOptions>();
@@ -80,7 +83,8 @@ public static class DependencyInjectionExtensions
                         ApiKey = options.ChatApiKey,
                         Endpoint = options.ChatEndpoint,
                         DisableTracing = false,
-                    }
+                    },
+                    serviceKey: ChatClientServiceKey
                 );
 
                 azureOpenAIApiClientBuilder.AddAzureOpenAIChatCompletion(
@@ -108,7 +112,8 @@ public static class DependencyInjectionExtensions
                         ApiKey = options.ChatApiKey,
                         Endpoint = options.ChatEndpoint,
                         DisableTracing = false,
-                    }
+                    },
+                    serviceKey: ChatClientServiceKey
                 );
 
                 openAiApiClientBuilder.AddOpenAIChatCompletion(
@@ -169,10 +174,11 @@ public static class DependencyInjectionExtensions
                 var azureOpenAiApiClientBuilder = builder.AddAzureOpenAIClient(
                     new AzureOpenAIApiClientSettings
                     {
-                        ApiKey = options.ChatApiKey,
-                        Endpoint = options.ChatEndpoint,
+                        ApiKey = options.EmbeddingApiKey,
+                        Endpoint = options.EmbeddingEndpoint,
                         DisableTracing = false,
-                    }
+                    },
+                    serviceKey: EmbeddingClientServiceKey
                 );
 
                 // https://devblogs.microsoft.com/semantic-kernel/introducing-new-ollama-connector-for-local-models/
@@ -198,10 +204,11 @@ public static class DependencyInjectionExtensions
                 var openAiApiClientBuilder = builder.AddOpenAIClient(
                     new OpenAIApiClientSettings
                     {
-                        ApiKey = options.ChatApiKey,
-                        Endpoint = options.ChatEndpoint,
+                        ApiKey = options.EmbeddingApiKey,
+                        Endpoint = options.EmbeddingEndpoint,
                         DisableTracing = false,
-                    }
+                    },
+                    serviceKey: EmbeddingClientServiceKey
                 );
 
                 // https://devblogs.microsoft.com/semantic-kernel/introducing-new-ollama-connector-for-local-models/

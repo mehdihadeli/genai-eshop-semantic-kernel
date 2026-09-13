@@ -4,7 +4,7 @@ using Asp.Versioning.ApiExplorer;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace BuildingBlocks.OpenApi;
 
@@ -120,7 +120,10 @@ public static class OpenApiOptionsExtensions
                 {
                     if (schema.Required?.Contains(property.Key) != true)
                     {
-                        property.Value.Nullable = false;
+                        if (property.Value is OpenApiSchema propertySchema && propertySchema.Type is { } type)
+                        {
+                            propertySchema.Type = type & ~JsonSchemaType.Null;
+                        }
                     }
                 }
 

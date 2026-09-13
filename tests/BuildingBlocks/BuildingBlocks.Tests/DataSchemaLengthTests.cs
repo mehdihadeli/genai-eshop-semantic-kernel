@@ -1,3 +1,5 @@
+using BuildingBlocks.EF;
+
 namespace BuildingBlocks.Tests;
 
 public class DataSchemaLengthTests

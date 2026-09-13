@@ -1,6 +1,7 @@
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using Microsoft.SemanticKernel.Connectors.Ollama;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 #pragma warning disable SKEXP0001
 
@@ -65,7 +66,7 @@ public static class SemanticKernelExecutionSettings
                     azureDefaultExtensionData,
                     semanticKernelOptions.ChatExtensionData
                 );
-                return new AzureOpenAIPromptExecutionSettings
+                return new OpenAIPromptExecutionSettings
                 {
                     FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(
                         options: new FunctionChoiceBehaviorOptions { RetainArgumentTypes = true }

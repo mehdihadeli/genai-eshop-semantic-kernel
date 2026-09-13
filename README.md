@@ -28,9 +28,25 @@
 
 ## Getting Started
 
+### OpenAI-compatible API
+
+Copy `.env.example` to `.env`, then replace the placeholder endpoint, model names, and API keys. The application reads `SemanticKernelOptions__...` environment variables, so any provider exposing the OpenAI `/v1` API shape can be used for local testing:
+
+```bash
+cp .env.example .env
+```
+
+Set `SemanticKernelOptions__ChatEndpoint` and `SemanticKernelOptions__EmbeddingEndpoint` to your provider's base URL, such as `http://localhost:4000/v1`. Keep `.env` local and never commit credentials.
+
+Run the focused tests with:
+
+```bash
+dotnet test --project tests/BuildingBlocks/BuildingBlocks.Tests/BuildingBlocks.Tests.csproj
+```
+
 ### Prerequisites
 
-- [.NET 9.0 SDK](https://dotnet.microsoft.com/download/dotnet/)
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/)
 - [Docker](https://www.docker.com/get-started)
 - [Aspire CLI](https://learn.microsoft.com/en-us/dotnet/aspire/cli/install)
 
@@ -79,6 +95,24 @@ This command will run the required infrastructure for the application
 Open the solution file [genai-eshop-semantic-kernel.sln](./genai-eshop-semantic-kernel.sln) in your preferred IDE (e.g., Rider or Visual Studio).
 
 Now you can run each microservice using the IDE.
+
+### Run Integration and End-to-End Tests
+
+Start Aspire before running tests so PostgreSQL, Redis, Qdrant, and the APIs are available:
+
+```bash
+export GENAI_RUN_EXTERNAL_TESTS=true
+bash scripts/start-aspire-for-tests.sh
+find tests -type f \( -name '*IntegrationTests.csproj' -o -name '*EndToEndTests.csproj' \) -print0 |
+	while IFS= read -r -d '' project; do
+		dotnet test --project "$project" --configuration Release --no-build
+	done
+bash scripts/stop-aspire-for-tests.sh
+```
+
+The integration test projects use xUnit v3's Microsoft.Testing.Platform runner, so CI invokes each `*IntegrationTests.csproj` and `*EndToEndTests.csproj` project explicitly.
+
+The start script waits for every API health endpoint and disables vector seeding by default. Use `GENAI_TEST_*_BASE_URL` variables to override service URLs. CI runs the same lifecycle automatically and always stops Aspire after the test step.
 
 ## License
 

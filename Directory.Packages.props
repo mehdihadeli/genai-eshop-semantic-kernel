@@ -77,7 +77,7 @@
     <PackageVersion Include="ModelContextProtocol" Version="2.2.0" />
     <PackageVersion Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
     <!-- A2A-->
-    <PackageVersion Include="A2A.AspNetCore" Version="1.0.0-preview2" />
+    <PackageVersion Include="A2A.AspNetCore" Version="0.3.1-preview" />
     <PackageVersion Include="Microsoft.SemanticKernel.Agents.A2A" Version="1.80.1-alpha" />
     <!-- Orchestrations-->
     <PackageVersion Include="Microsoft.SemanticKernel.Agents.Orchestration" Version="1.80.1-preview" />

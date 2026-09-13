@@ -31,8 +31,22 @@ public class CatalogsDataSeeder(
     private async Task SeedProducts(CatalogsDbContext context, ProductsSeedData seedData)
     {
         await SeedProductsInEntityFrameworkAsync(context, seedData);
+
+        if (ShouldSkipVectorSeeding())
+        {
+            logger.LogInformation("Skipping catalog vector seeding because GENAI_SKIP_VECTOR_SEEDING is enabled.");
+            return;
+        }
+
         await SeedProductsInVectorDBAsync(context);
     }
+
+    private static bool ShouldSkipVectorSeeding() =>
+        string.Equals(
+            Environment.GetEnvironmentVariable("GENAI_SKIP_VECTOR_SEEDING"),
+            "true",
+            StringComparison.OrdinalIgnoreCase
+        );
 
     private async Task SeedProductsInVectorDBAsync(CatalogsDbContext context)
     {
